@@ -1,0 +1,7 @@
+[pytest]
+email = test-user-email
+password = test-user-password
+token = test-api-token
+email2 = another-test-user-email
+password2 = another-test-user-password
+token2 = another-test-api-token

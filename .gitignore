@@ -1,0 +1,7 @@
+/.tox
+/doc/_build
+/pytest.ini
+
+.*.swp
+*.pyc
+*.egg-info
