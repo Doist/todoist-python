@@ -1,6 +1,8 @@
 /.tox
 /doc/_build
 /pytest.ini
+/build
+/dist
 
 .*.swp
 *.pyc
