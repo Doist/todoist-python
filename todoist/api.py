@@ -204,12 +204,12 @@ class TodoistAPI(object):
             self.api_token = data['api_token']
         return data
 
-    def ping(self, token):
+    def ping(self):
         """
         Tests user's login token, and returns the response received by the
         server.
         """
-        return self._get('ping', params={'token': token})
+        return self._get('ping', params={'token': self.api_token})
 
     def get_timezones(self):
         """
@@ -217,11 +217,12 @@ class TodoistAPI(object):
         """
         return self._get('getTimezones')
 
-    def get_productivity_stats(self, token):
+    def get_productivity_stats(self):
         """
         Returns the user's recent productivity stats.
         """
-        return self._get('getProductivityStats', params={'token': token})
+        return self._get('getProductivityStats',
+                         params={'token': self.api_token})
 
     def query(self, queries, **kwargs):
         """

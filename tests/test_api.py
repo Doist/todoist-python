@@ -38,10 +38,10 @@ def test_login(user_email, user_password):
 
 
 def test_ping(api_token):
-    api = todoist.api.TodoistAPI()
+    api = todoist.api.TodoistAPI(api_token)
     api.api_url = 'https://local.todoist.com/API/'
     api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
-    assert api.ping(api_token) == 'ok'
+    assert api.ping() == 'ok'
 
 
 def test_timezones():
@@ -55,7 +55,7 @@ def test_stats(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_url = 'https://local.todoist.com/API/'
     api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
-    response = api.get_productivity_stats(api_token)
+    response = api.get_productivity_stats()
     assert 'days_items' in response
     assert 'week_items' in response
     assert 'karma_trend' in response
