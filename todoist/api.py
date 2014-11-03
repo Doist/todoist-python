@@ -217,6 +217,12 @@ class TodoistAPI(object):
         """
         return self._get('getTimezones')
 
+    def get_productivity_stats(self, token):
+        """
+        Returns the user's recent productivity stats.
+        """
+        return self._get('getProductivityStats', params={'token': token})
+
     def query(self, queries, **kwargs):
         """
         Performs date queries and other searches, and returns the results.

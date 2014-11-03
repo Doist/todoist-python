@@ -48,7 +48,18 @@ def test_timezones():
     api = todoist.api.TodoistAPI()
     api.api_url = 'https://local.todoist.com/API/'
     api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
-    assert [u'Europe/Lisbon', u'(GMT+0100) Lisbon'] in api.get_timezones()
+    assert [u'UTC', u'(GMT+0000) UTC'] in api.get_timezones()
+
+
+def test_stats(api_token):
+    api = todoist.api.TodoistAPI(api_token)
+    api.api_url = 'https://local.todoist.com/API/'
+    api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
+    response = api.get_productivity_stats(api_token)
+    assert 'days_items' in response
+    assert 'week_items' in response
+    assert 'karma_trend' in response
+    assert 'karma_last_update' in response
 
 
 def test_query(api_token):
