@@ -51,6 +51,16 @@ def test_timezones():
     assert [u'UTC', u'(GMT+0000) UTC'] in api.get_timezones()
 
 
+def test_link(api_token):
+    api = todoist.api.TodoistAPI(api_token)
+    api.api_url = 'https://local.todoist.com/API/'
+    api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
+    response = api.get_redirect_link()
+    assert 'link' in response
+    assert response['link'].\
+        startswith('https://local.todoist.com/secureRedirect?path=')
+
+
 def test_stats(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_url = 'https://local.todoist.com/API/'
@@ -108,6 +118,20 @@ def test_upload(api_token):
     assert response['file_type'] == 'text/plain'
 
     os.remove(filename)
+
+
+def test_notifications(api_token):
+    api = todoist.api.TodoistAPI(api_token)
+    api.api_url = 'https://local.todoist.com/API/'
+    api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
+    response = api.update_notification_setting(
+        notification_type='item_completed', service='email', dont_notify=1)
+    assert 'item_completed' in response
+    assert not response['item_completed']['notify_email']
+    response = api.update_notification_setting(
+        notification_type='item_completed', service='email', dont_notify=0)
+    assert 'item_completed' in response
+    assert response['item_completed']['notify_email']
 
 
 def test_user(api_token):

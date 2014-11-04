@@ -217,6 +217,13 @@ class TodoistAPI(object):
         """
         return self._get('getTimezones')
 
+    def get_redirect_link(self, **kwargs):
+        """
+        Returns the absolute URL to redirect or to open in a browser.
+        """
+        return self._get('getRedirectLink', params={'token': self.api_token},
+                         **kwargs)
+
     def get_productivity_stats(self):
         """
         Returns the user's recent productivity stats.
@@ -239,6 +246,17 @@ class TodoistAPI(object):
         return self._post('uploadFile', self.api_url,
                           params={'token': self.api_token}, files=files,
                           **kwargs)
+
+    def update_notification_setting(self, notification_type, service,
+                                    dont_notify):
+        """
+        Updates the user's notification settings.
+        """
+        return self._get('updateNotificationSetting',
+                         params={'token': self.api_token,
+                                 'notification_type': notification_type,
+                                 'service': service,
+                                 'dont_notify': dont_notify})
 
     # Sync API based calls
     def get(self, **kwargs):
