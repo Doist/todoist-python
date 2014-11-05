@@ -51,6 +51,23 @@ def test_timezones():
     assert [u'UTC', u'(GMT+0000) UTC'] in api.get_timezones()
 
 
+def test_register():
+    api = todoist.api.TodoistAPI()
+    api.api_url = 'https://local.todoist.com/API/'
+    api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
+    now = str(int(time.time()))
+    email = 'user' + now + '@example.org'
+    full_name = 'User' + now
+    password = 'pass' + now
+    response = api.register(email, full_name, password)
+    assert 'email' in response
+    assert 'full_name' in response
+    assert response['email'] == email
+    assert response['full_name'] == full_name
+    response = api.delete_user(password, in_background=0)
+    assert response == 'ok'
+
+
 def test_link(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_url = 'https://local.todoist.com/API/'
@@ -124,12 +141,10 @@ def test_notifications(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_url = 'https://local.todoist.com/API/'
     api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
-    response = api.update_notification_setting(
-        notification_type='item_completed', service='email', dont_notify=1)
+    response = api.update_notification_setting('item_completed', 'email', 1)
     assert 'item_completed' in response
     assert not response['item_completed']['notify_email']
-    response = api.update_notification_setting(
-        notification_type='item_completed', service='email', dont_notify=0)
+    response = api.update_notification_setting('item_completed', 'email', 0)
     assert 'item_completed' in response
     assert response['item_completed']['notify_email']
 

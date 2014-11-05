@@ -198,8 +198,9 @@ class TodoistAPI(object):
         the server.
 
         """
-        data = self._get('loginWithGoogle', params={'email': email,
-                         'oauth2_token': oauth2_token}, **kwargs)
+        params = {'email': email, 'oauth2_token': oauth2_token}
+        params.update(kwargs)
+        data = self._get('loginWithGoogle', params=params)
         if 'api_token' in data:
             self.api_token = data['api_token']
         return data
@@ -217,12 +218,33 @@ class TodoistAPI(object):
         """
         return self._get('getTimezones')
 
+    def register(self, email, full_name, password, **kwargs):
+        """
+        Registers a new user.
+        """
+        params = {'email': email, 'full_name': full_name, 'password': password}
+        params.update(kwargs)
+        data = self._get('register', params=params)
+        if 'api_token' in data:
+            self.api_token = data['api_token']
+        return data
+
+    def delete_user(self, current_password, **kwargs):
+        """
+        Deletes an existing user.
+        """
+        params = {'token': self.api_token,
+                  'current_password': current_password}
+        params.update(kwargs)
+        return self._get('deleteUser', params=params)
+
     def get_redirect_link(self, **kwargs):
         """
         Returns the absolute URL to redirect or to open in a browser.
         """
-        return self._get('getRedirectLink', params={'token': self.api_token},
-                         **kwargs)
+        params = {'token': self.api_token}
+        params.update(kwargs)
+        return self._get('getRedirectLink', params=params)
 
     def get_productivity_stats(self):
         """
@@ -235,17 +257,19 @@ class TodoistAPI(object):
         """
         Performs date queries and other searches, and returns the results.
         """
-        return self._get('query', params={'queries': json.dumps(queries),
-                         'token': self.api_token}, **kwargs)
+        params = {'queries': json.dumps(queries), 'token': self.api_token}
+        params.update(kwargs)
+        return self._get('query', params=params)
 
     def upload_file(self, filename, **kwargs):
         """
         Uploads a file.
         """
+        params = {'token': self.api_token}
+        params.update(kwargs)
         files = {'file': open(filename, 'rb')}
-        return self._post('uploadFile', self.api_url,
-                          params={'token': self.api_token}, files=files,
-                          **kwargs)
+        return self._post('uploadFile', self.api_url, params=params,
+                          files=files)
 
     def update_notification_setting(self, notification_type, service,
                                     dont_notify):
