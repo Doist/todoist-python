@@ -1,5 +1,4 @@
 import time
-import random
 import json
 import requests
 
@@ -37,6 +36,8 @@ class TodoistAPI(object):
         self.api_token = api_token  # User's API token
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
+        self.timestamp = -1
+        self.timestamp_suffix = -1
 
     def __getitem__(self, key):
         return self.state[key]
@@ -176,10 +177,15 @@ class TodoistAPI(object):
 
     def _generate_timestamp(self):
         """
-        Generates a timestamp, which is based on the current unix time plus
-        four random digits at the end.
+        Generates a timestamp, which is based on the current unix time.
         """
-        return str(int(time.time()) * 1000 + random.randint(0, 999))
+        now = int(time.time())
+        if now != self.timestamp:
+            self.timestamp = now
+            self.timestamp_suffix = 1
+        else:
+            self.timestamp_suffix += 1
+        return str(self.timestamp) + '.' + str(self.timestamp_suffix)
 
     # Standard API based calls
     def login(self, email, password):
