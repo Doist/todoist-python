@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager
+from .generic import Manager, AllMixin, GetByIdMixin
 
 
-class LabelsManager(Manager):
+class LabelsManager(Manager, AllMixin, GetByIdMixin):
 
-    def get_by_id(self, label_id):
-        """
-        Finds and returns label based on its id.
-        """
-        for obj in self.state['Labels']:
-            if obj['id'] == label_id or obj.temp_id == str(label_id):
-                return obj
-        return None
+    state_name = 'Labels'
 
     def register(self, name, **kwargs):
         """
@@ -23,7 +16,7 @@ class LabelsManager(Manager):
         ts = self.api.generate_timestamp()
         obj.temp_id = obj['id'] = '$' + ts
         obj.data.update(kwargs)
-        self.state['Labels'].append(obj)
+        self.state[self.state_name].append(obj)
         item = {
             'type': 'label_register',
             'temp_id': obj.temp_id,

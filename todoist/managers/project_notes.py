@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager
+from .generic import Manager, AllMixin, GetByIdMixin
 
 
-class ProjectNotesManager(Manager):
+class ProjectNotesManager(Manager, AllMixin, GetByIdMixin):
 
-    def get_by_id(self, note_id):
-        """
-        Finds and returns note based on its id.
-        """
-        for obj in self.state['ProjectNotes']:
-            if obj['id'] == note_id or obj.temp_id == str(note_id):
-                return obj
-        return None
+    state_name = 'ProjectNotes'
 
     def add(self, project_id, content, **kwargs):
         """
@@ -24,7 +17,7 @@ class ProjectNotesManager(Manager):
         ts = self.api.generate_timestamp()
         obj.temp_id = obj['id'] = '$' + ts
         obj.data.update(kwargs)
-        self.state['ProjectNotes'].append(obj)
+        self.state[self.state_name].append(obj)
         item = {
             'type': 'note_add',
             'temp_id': obj.temp_id,

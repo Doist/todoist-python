@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager
+from .generic import Manager, AllMixin, GetByIdMixin
 
 
-class RemindersManager(Manager):
+class RemindersManager(Manager, AllMixin, GetByIdMixin):
 
-    def get_by_id(self, reminder_id):
-        """
-        Finds and returns reminder based on its id.
-        """
-        for obj in self.state['Reminders']:
-            if obj['id'] == reminder_id or obj.temp_id == str(reminder_id):
-                return obj
-        return None
+    state_name = 'Reminders'
 
     def add(self, item_id, **kwargs):
         """
@@ -23,7 +16,7 @@ class RemindersManager(Manager):
         ts = self.api.generate_timestamp()
         obj.temp_id = obj['id'] = '$' + ts
         obj.data.update(kwargs)
-        self.state['Reminders'].append(obj)
+        self.state[self.state_name].append(obj)
         item = {
             'type': 'reminder_add',
             'temp_id': obj.temp_id,

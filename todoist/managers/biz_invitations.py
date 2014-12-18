@@ -4,6 +4,9 @@ from .generic import Manager
 
 class BizInvitationsManager(Manager):
 
+    # there is no local state associated with the manager
+    state_name = None
+
     def accept(self, invitation_id, invitation_secret):
         """
         Appends a request to the queue, to accept a business invitation to

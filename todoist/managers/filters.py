@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager
+from .generic import Manager, AllMixin, GetByIdMixin
 
 
-class FiltersManager(Manager):
+class FiltersManager(Manager, AllMixin, GetByIdMixin):
 
-    def get_by_id(self, filter_id):
-        """
-        Finds and returns filter based on its id.
-        """
-        for obj in self.state['Filters']:
-            if obj['id'] == filter_id or obj.temp_id == str(filter_id):
-                return obj
-        return None
+    state_name = 'Filters'
 
     def add(self, name, query, **kwargs):
         """
@@ -23,7 +16,7 @@ class FiltersManager(Manager):
         ts = self.api.generate_timestamp()
         obj.temp_id = obj['id'] = '$' + ts
         obj.data.update(kwargs)
-        self.state['Filters'].append(obj)
+        self.state[self.state_name].append(obj)
         item = {
             'type': 'filter_add',
             'temp_id': obj.temp_id,

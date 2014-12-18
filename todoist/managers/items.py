@@ -1,25 +1,17 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager
+from .generic import Manager, AllMixin, GetByIdMixin
 
 
-class ItemsManager(Manager):
+class ItemsManager(Manager, AllMixin, GetByIdMixin):
 
-    # Items
-    def get_by_id(self, item_id):
-        """
-        Finds and returns item based on its id.
-        """
-        for obj in self.state['Items']:
-            if obj['id'] == item_id or obj.temp_id == str(item_id):
-                return obj
-        return None
+    state_name = 'Items'
 
     def get_by_content(self, content):
         """
         Finds and returns item based on its content.
         """
-        for obj in self.state['Items']:
+        for obj in self.state[self.state_name]:
             if obj['content'] == content:
                 return obj
         return None
@@ -34,7 +26,7 @@ class ItemsManager(Manager):
         ts = self.api.generate_timestamp()
         obj.temp_id = obj['id'] = '$' + ts
         obj.data.update(kwargs)
-        self.state['Items'].append(obj)
+        self.state[self.state_name].append(obj)
         item = {
             'type': 'item_add',
             'temp_id': obj.temp_id,

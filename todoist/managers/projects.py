@@ -1,27 +1,17 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager
+from .generic import Manager, AllMixin, GetByIdMixin
 
 
-class ProjectsManager(Manager):
+class ProjectsManager(Manager, AllMixin, GetByIdMixin):
 
-    def all(self):
-        return self.state['Projects']
-
-    def get_by_id(self, project_id):
-        """
-        Finds and returns project based on its id.
-        """
-        for obj in self.state['Projects']:
-            if obj['id'] == project_id or obj.temp_id == str(project_id):
-                return obj
-        return None
+    state_name = 'Projects'
 
     def get_by_name(self, name):
         """
         Finds and returns project based on its name.
         """
-        for obj in self.state['Projects']:
+        for obj in self.state[self.state_name]:
             if obj['name'] == name:
                 return obj
         return None
@@ -35,7 +25,7 @@ class ProjectsManager(Manager):
         ts = self.api.generate_timestamp()
         obj.temp_id = obj['id'] = '$' + ts
         obj.data.update(kwargs)
-        self.state['Projects'].append(obj)
+        self.state[self.state_name].append(obj)
         item = {
             'type': 'project_add',
             'temp_id': obj.temp_id,
