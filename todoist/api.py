@@ -20,9 +20,9 @@ class TodoistAPI(object):
     Implements the API that makes it possible to interact with a Todoist user
     account and its data.
     """
-    def __init__(self, api_token=''):
-        self.api_url = 'https://todoist.com/API/'  # Standard API
-        self.sync_url = 'https://api.todoist.com/TodoistSync/v5.5/'  # Sync API
+    def __init__(self, api_token='', api_endpoint='https://api.todoist.com'):
+        self.api_url = '%s/API/' % api_endpoint  # Standard API
+        self.sync_url = '%s/TodoistSync/v5.5/' % api_endpoint  # Sync API
         self.seq_no = 0  # Sequence number since last update
         self.state = {  # Local copy of all of the user's objects
             'CollaboratorStates': [],
