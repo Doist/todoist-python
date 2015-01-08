@@ -3,6 +3,16 @@ import json
 import requests
 
 from todoist import models
+from todoist.managers.biz_invitations import BizInvitationsManager
+from todoist.managers.filters import FiltersManager
+from todoist.managers.invitations import InvitationsManager
+from todoist.managers.live_notifications import LiveNotificationsManager
+from todoist.managers.notes import NotesManager
+from todoist.managers.projects import ProjectsManager
+from todoist.managers.project_notes import ProjectNotesManager
+from todoist.managers.items import ItemsManager
+from todoist.managers.labels import LabelsManager
+from todoist.managers.reminders import RemindersManager
 
 
 class TodoistAPI(object):
@@ -10,9 +20,9 @@ class TodoistAPI(object):
     Implements the API that makes it possible to interact with a Todoist user
     account and its data.
     """
-    def __init__(self, api_token=''):
-        self.api_url = 'https://todoist.com/API/'  # Standard API
-        self.sync_url = 'https://api.todoist.com/TodoistSync/v5.3/'  # Sync API
+    def __init__(self, api_token='', api_endpoint='https://api.todoist.com'):
+        self.api_url = '%s/API/' % api_endpoint  # Standard API
+        self.sync_url = '%s/TodoistSync/v5.5/' % api_endpoint  # Sync API
         self.seq_no = 0  # Sequence number since last update
         self.state = {  # Local copy of all of the user's objects
             'CollaboratorStates': [],
@@ -25,6 +35,7 @@ class TodoistAPI(object):
             'LiveNotifications': [],
             'LiveNotificationsLastRead': -1,
             'Notes': [],
+            'ProjectNotes': [],
             'Projects': [],
             'Reminders': [],
             'Settings': {},
@@ -38,6 +49,18 @@ class TodoistAPI(object):
         self.queue = []  # Requests to be sent are appended here
         self.timestamp = -1
         self.timestamp_suffix = -1
+
+        # managers
+        self.projects = ProjectsManager(self)
+        self.project_notes = ProjectNotesManager(self)
+        self.items = ItemsManager(self)
+        self.labels = LabelsManager(self)
+        self.filters = FiltersManager(self)
+        self.notes = NotesManager(self)
+        self.live_notifications = LiveNotificationsManager(self)
+        self.reminders = RemindersManager(self)
+        self.invitations = InvitationsManager(self)
+        self.biz_invitations = BizInvitationsManager(self)
 
     def __getitem__(self, key):
         return self.state[key]
@@ -78,7 +101,10 @@ class TodoistAPI(object):
         # updates an existing object, or marks an object to be deleted.  But
         # the same procedure takes place for each of these types of data.
         for datatype in 'Filters', 'Items', 'Labels', 'LiveNotifications', \
-                        'Notes', 'Projects', 'Reminders':
+                        'Notes', 'ProjectNotes', 'Projects', 'Reminders':
+            if datatype not in syncdata:
+                continue
+
             # Process each object of this specific type in the sync data.
             for remoteobj in syncdata[datatype]:
                 # Find out whether the object already exists in the local
@@ -113,19 +139,21 @@ class TodoistAPI(object):
             return self.collaborator_state_get_by_ids(obj['project_id'],
                                                       obj['user_id'])
         elif objtype == 'Filters':
-            return self.filter_get_by_id(obj['id'])
+            return self.filters.get_by_id(obj['id'])
         elif objtype == 'Items':
-            return self.item_get_by_id(obj['id'])
+            return self.items.get_by_id(obj['id'])
         elif objtype == 'Labels':
-            return self.label_get_by_id(obj['id'])
+            return self.labels.get_by_id(obj['id'])
         elif objtype == 'LiveNotifications':
-            return self.live_notifications_get_by_key(obj['notification_key'])
+            return self.live_notifications.get_by_key(obj['notification_key'])
         elif objtype == 'Notes':
-            return self.note_get_by_id(obj['id'])
+            return self.notes.get_by_id(obj['id'])
+        elif objtype == 'ProjectNotes':
+            return self.project_notes.get_by_id(obj['id'])
         elif objtype == 'Projects':
-            return self.project_get_by_id(obj['id'])
+            return self.projects.get_by_id(obj['id'])
         elif objtype == 'Reminders':
-            return self.reminder_get_by_id(obj['id'])
+            return self.reminders.get_by_id(obj['id'])
         else:
             return None
 
@@ -175,7 +203,7 @@ class TodoistAPI(object):
         except ValueError:
             return response.text
 
-    def _generate_timestamp(self):
+    def generate_timestamp(self):
         """
         Generates a timestamp, which is based on the current unix time.
         """
@@ -348,341 +376,6 @@ class TodoistAPI(object):
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
 
-    # Projects
-    def project_get_by_id(self, project_id):
-        """
-        Finds and returns project based on its id.
-        """
-        for obj in self.state['Projects']:
-            if obj['id'] == project_id or obj.temp_id == str(project_id):
-                return obj
-        return None
-
-    def project_get_by_name(self, name):
-        """
-        Finds and returns project based on its name.
-        """
-        for obj in self.state['Projects']:
-            if obj['name'] == name:
-                return obj
-        return None
-
-    def project_add(self, name, **kwargs):
-        """
-        Adds a project to the local state, and appends the equivalent request
-        to the queue.
-        """
-        obj = models.Project({'name': name}, self)
-        ts = self._generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
-        obj.data.update(kwargs)
-        self.state['Projects'].append(obj)
-        item = {
-            'type': 'project_add',
-            'temp_id': obj.temp_id,
-            'timestamp': ts,
-            'args': obj.data,
-        }
-        self.queue.append(item)
-        return obj
-
-    def project_update_orders_indents(self, ids_to_orders_indents):
-        """
-        Updates in the local state the orders and indents of multiple projects,
-        and appends the equivalent request to the queue.
-        """
-        for project_id in ids_to_orders_indents.keys():
-            obj = self.project_get_by_id(project_id)
-            if obj:
-                obj['item_order'] = ids_to_orders_indents[project_id][0]
-                obj['indent'] = ids_to_orders_indents[project_id][1]
-        item = {
-            'type': 'project_update_orders_indents',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'ids_to_orders_indents': ids_to_orders_indents,
-            },
-        }
-        self.queue.append(item)
-
-    # Items
-    def item_get_by_id(self, item_id):
-        """
-        Finds and returns item based on its id.
-        """
-        for obj in self.state['Items']:
-            if obj['id'] == item_id or obj.temp_id == str(item_id):
-                return obj
-        return None
-
-    def item_get_by_content(self, content):
-        """
-        Finds and returns item based on its content.
-        """
-        for obj in self.state['Items']:
-            if obj['content'] == content:
-                return obj
-        return None
-
-    def item_add(self, content, project_id, **kwargs):
-        """
-        Adds an item to the local state, and appends the equivalent request to
-        the queue.
-        """
-        obj = models.Item({'content': content, 'project_id': project_id}, self)
-        ts = self._generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
-        obj.data.update(kwargs)
-        self.state['Items'].append(obj)
-        item = {
-            'type': 'item_add',
-            'temp_id': obj.temp_id,
-            'timestamp': ts,
-            'args': obj.data,
-        }
-        self.queue.append(item)
-        return obj
-
-    def item_uncomplete_update_meta(self, project_id, ids_to_metas):
-        """
-        Marks an item as completed in the local state, and appends the
-        equivalent request to the queue.
-        """
-        for item_id in ids_to_metas.keys():
-            obj = self.item_get_by_id(item_id)
-            if obj:
-                obj['in_history'] = ids_to_metas[item_id][0]
-                obj['checked'] = ids_to_metas[item_id][1]
-                obj['item_order'] = ids_to_metas[item_id][2]
-        item = {
-            'type': 'item_uncomplete_update_meta',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'project_id': project_id,
-                'ids_to_metas': ids_to_metas,
-            },
-        }
-        self.queue.append(item)
-
-    def item_update_date_complete(self, item_id, new_date_utc, date_string,
-                                  is_forward):
-        """
-        Updates in the local state the date of multiple recurring tasks, and
-        appends the equivalent request to the queue.
-        """
-        obj = self.item_get_by_id(item_id)
-        if obj:
-            obj['new_date_utc'] = new_date_utc
-            obj['date_string'] = date_string
-            obj['is_forward'] = is_forward
-        item = {
-            'type': 'item_update_date_complete',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'id': item_id,
-                'new_date_utc': new_date_utc,
-                'date_string': date_string,
-                'is_forward': is_forward,
-            },
-        }
-        self.queue.append(item)
-
-    def item_update_orders_indents(self, ids_to_orders_indents):
-        """
-        Updates in the local state the order and indents of multiple items, and
-        appends the equivalent request to the queue.
-        """
-        for item_id in ids_to_orders_indents.keys():
-            obj = self.item_get_by_id(item_id)
-            if obj:
-                obj['item_order'] = ids_to_orders_indents[item_id][0]
-                obj['indent'] = ids_to_orders_indents[item_id][1]
-        item = {
-            'type': 'item_update_orders_indents',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'ids_to_orders_indents': ids_to_orders_indents,
-            },
-        }
-        self.queue.append(item)
-
-    def item_update_day_orders(self, ids_to_orders):
-        """
-        Updates in the local state the day orders of multiple items, and
-        appends the equivalent request to the queue.
-        """
-        for item_id in ids_to_orders.keys():
-            obj = self.item_get_by_id(item_id)
-            if obj:
-                obj['day_order'] = ids_to_orders[item_id]
-        item = {
-            'type': 'item_update_day_orders',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'ids_to_orders': ids_to_orders,
-            },
-        }
-        self.queue.append(item)
-
-    # Labels
-    def label_get_by_id(self, label_id):
-        """
-        Finds and returns label based on its id.
-        """
-        for obj in self.state['Labels']:
-            if obj['id'] == label_id or obj.temp_id == str(label_id):
-                return obj
-        return None
-
-    def label_register(self, name, **kwargs):
-        """
-        Registers a label in the local state, and appends the equivalent
-        request to the queue.
-        """
-        obj = models.Label({'name': name}, self)
-        ts = self._generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
-        obj.data.update(kwargs)
-        self.state['Labels'].append(obj)
-        item = {
-            'type': 'label_register',
-            'temp_id': obj.temp_id,
-            'timestamp': ts,
-            'args': obj.data,
-        }
-        self.queue.append(item)
-        return obj
-
-    # Notes
-    def note_get_by_id(self, note_id):
-        """
-        Finds and returns note based on its id.
-        """
-        for obj in self.state['Notes']:
-            if obj['id'] == note_id or obj.temp_id == str(note_id):
-                return obj
-        return None
-
-    def note_add(self, item_id, content, **kwargs):
-        """
-        Adds a note to the local state, and appends the equivalent request to
-        the queue.
-        """
-        obj = models.Note({'item_id': item_id, 'content': content}, self)
-        ts = self._generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
-        obj.data.update(kwargs)
-        self.state['Notes'].append(obj)
-        item = {
-            'type': 'note_add',
-            'temp_id': obj.temp_id,
-            'timestamp': ts,
-            'args': obj.data,
-        }
-        self.queue.append(item)
-        return obj
-
-    # Filters
-    def filter_get_by_id(self, filter_id):
-        """
-        Finds and returns filter based on its id.
-        """
-        for obj in self.state['Filters']:
-            if obj['id'] == filter_id or obj.temp_id == str(filter_id):
-                return obj
-        return None
-
-    def filter_add(self, name, query, **kwargs):
-        """
-        Adds a filter to the local state, and appends the equivalent request to
-        the queue.
-        """
-        obj = models.Filter({'name': name, 'query': query}, self)
-        ts = self._generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
-        obj.data.update(kwargs)
-        self.state['Filters'].append(obj)
-        item = {
-            'type': 'filter_add',
-            'temp_id': obj.temp_id,
-            'timestamp': ts,
-            'args': obj.data,
-        }
-        self.queue.append(item)
-        return obj
-
-    def filter_update_orders(self, id_order_mapping):
-        """
-        Updates in the local state the orders of multiple filters, and appends
-        the equivalent request to the queue.
-        """
-        for filter_id in id_order_mapping.keys():
-            obj = self.filter_get_by_id(filter_id)
-            if obj:
-                obj['item_order'] = id_order_mapping[filter_id]
-        item = {
-            'type': 'filter_update_orders',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'id_order_mapping': id_order_mapping,
-            },
-        }
-        self.queue.append(item)
-
-    # Reminders
-    def reminder_get_by_id(self, reminder_id):
-        """
-        Finds and returns reminder based on its id.
-        """
-        for obj in self.state['Reminders']:
-            if obj['id'] == reminder_id or obj.temp_id == str(reminder_id):
-                return obj
-        return None
-
-    def reminder_add(self, item_id, **kwargs):
-        """
-        Adds a reminder to the local state, and appends the equivalent request
-        to the queue.
-        """
-        obj = models.Reminder({'item_id': item_id}, self)
-        ts = self._generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
-        obj.data.update(kwargs)
-        self.state['Reminders'].append(obj)
-        item = {
-            'type': 'reminder_add',
-            'temp_id': obj.temp_id,
-            'timestamp': ts,
-            'args': obj.data,
-        }
-        self.queue.append(item)
-        return obj
-
-    # Live notifications
-    def live_notifications_get_by_key(self, notification_key):
-        """
-        Finds and returns live notification based on its key.
-        """
-        for obj in self.state['LiveNotifications']:
-            if obj['notification_key'] == notification_key:
-                return obj
-        return None
-
-    def live_notifications_mark_as_read(self, seq_no):
-        """
-        Sets in the local state the last notification read, and appends the
-        equivalent request to the queue.
-        """
-        self.state['LiveNotificationsLastRead'] = seq_no
-        item = {
-            'type': 'live_notifications_mark_as_read',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'seq_no': seq_no,
-            },
-        }
-        self.queue.append(item)
-
     # User
     def user_update(self, **kwargs):
         """
@@ -692,7 +385,7 @@ class TodoistAPI(object):
         kwargs['token'] = self.api_token
         item = {
             'type': 'user_update',
-            'timestamp': self._generate_timestamp(),
+            'timestamp': self.generate_timestamp(),
             'args': kwargs,
         }
         self.queue.append(item)
@@ -702,7 +395,7 @@ class TodoistAPI(object):
         """
         Appends a request to the queue, to share a project with a user.
         """
-        ts = self._generate_timestamp()
+        ts = self.generate_timestamp()
         item = {
             'type': 'share_project',
             'temp_id': '$' + ts,
@@ -722,54 +415,10 @@ class TodoistAPI(object):
         """
         item = {
             'type': 'delete_collaborator',
-            'timestamp': self._generate_timestamp(),
+            'timestamp': self.generate_timestamp(),
             'args': {
                 'project_id': project_id,
                 'email': email,
-            },
-        }
-        self.queue.append(item)
-
-    def accept_invitation(self, invitation_id, invitation_secret):
-        """
-        Appends a request to the queue, to accept an invitation to share a
-        project.
-        """
-        item = {
-            'type': 'accept_invitation',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'invitation_id': invitation_id,
-                'invitation_secret': invitation_secret,
-            },
-        }
-        self.queue.append(item)
-
-    def reject_invitation(self, invitation_id, invitation_secret):
-        """
-        Appends a request to the queue, to reject an invitation to share a
-        project.
-        """
-        item = {
-            'type': 'reject_invitation',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'invitation_id': invitation_id,
-                'invitation_secret': invitation_secret,
-            },
-        }
-        self.queue.append(item)
-
-    def delete_invitation(self, invitation_id):
-        """
-        Appends a request to the queue, to delete an invitation to share a
-        project.
-        """
-        item = {
-            'type': 'delete_invitation',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'invitation_id': invitation_id,
             },
         }
         self.queue.append(item)
@@ -780,39 +429,18 @@ class TodoistAPI(object):
         """
         item = {
             'type': 'take_ownership',
-            'timestamp': self._generate_timestamp(),
+            'timestamp': self.generate_timestamp(),
             'args': {
                 'id': project_id,
             },
         }
         self.queue.append(item)
 
-    def biz_accept_invitation(self, invitation_id, invitation_secret):
-        """
-        Appends a request to the queue, to accept a business invitation to
-        share a project.
-        """
-        item = {
-            'type': 'biz_accept_invitation',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'invitation_id': invitation_id,
-                'invitation_secret': invitation_secret,
-            },
-        }
-        self.queue.append(item)
-
-    def biz_reject_invitation(self, invitation_id, invitation_secret):
-        """
-        Appends a request to the queue, to reject a business invitation to
-        share a project.
-        """
-        item = {
-            'type': 'biz_reject_invitation',
-            'timestamp': self._generate_timestamp(),
-            'args': {
-                'invitation_id': invitation_id,
-                'invitation_secret': invitation_secret,
-            },
-        }
-        self.queue.append(item)
+    def __repr__(self):
+        name = self.__class__.__name__
+        unsaved = '*' if len(self.queue) > 0 else ''
+        if self.seq_no == 0:
+            email = '<not synchronized>'
+        else:
+            email = repr(self.state['User']['email'])
+        return '%s%s(%s)' % (name, unsaved, email)

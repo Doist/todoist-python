@@ -1,3 +1,6 @@
+from pprint import pformat
+
+
 class Model(object):
     """
     Implements a generic object.
@@ -14,7 +17,9 @@ class Model(object):
         return self.data[key]
 
     def __repr__(self):
-        return str(self.data)
+        formatted_dict = pformat(dict(self.data))
+        classname = self.__class__.__name__
+        return '%s(%s)' % (classname, formatted_dict)
 
 
 class Filter(Model):
@@ -29,7 +34,7 @@ class Filter(Model):
         args.update(kwargs)
         item = {
             'type': 'filter_update',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -41,7 +46,7 @@ class Filter(Model):
         """
         item = {
             'type': 'filter_delete',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'id': self['id'],
             },
@@ -63,7 +68,7 @@ class Item(Model):
         args.update(kwargs)
         item = {
             'type': 'item_update',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -75,7 +80,7 @@ class Item(Model):
         """
         item = {
             'type': 'item_delete',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'ids': [self['id']],
             },
@@ -90,7 +95,7 @@ class Item(Model):
         """
         item = {
             'type': 'item_move',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'project_items': {
                     self.data['project_id']: [self['id']],
@@ -108,7 +113,7 @@ class Item(Model):
         """
         item = {
             'type': 'item_complete',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'project_id': self['project_id'],
                 'ids': [self['id']],
@@ -126,7 +131,7 @@ class Item(Model):
         """
         item = {
             'type': 'item_uncomplete',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'project_id': self['project_id'],
                 'ids': [self['id']],
@@ -150,7 +155,7 @@ class Label(Model):
         args.update(kwargs)
         item = {
             'type': 'label_update',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -162,7 +167,7 @@ class Label(Model):
         """
         item = {
             'type': 'label_delete',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'id': self['id'],
             },
@@ -179,10 +184,13 @@ class LiveNotification(Model):
     pass
 
 
-class Note(Model):
+class GenericNote(Model):
     """
     Implements a note.
     """
+    #: has to be defined in subclasses
+    local_store = None
+
     def update(self, **kwargs):
         """
         Updates note, and appends the equivalent request to the queue.
@@ -191,7 +199,7 @@ class Note(Model):
         args.update(kwargs)
         item = {
             'type': 'note_update',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -203,15 +211,20 @@ class Note(Model):
         """
         item = {
             'type': 'note_delete',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'note_id': self['id'],
-                'item_id': self['item_id'],
             },
         }
         self.api.queue.append(item)
         self.data['is_deleted'] = 1
-        self.api.state['Notes'].remove(self)
+        self.api.state[self.local_store].remove(self)
+
+class Note(GenericNote):
+    local_store = 'Notes'
+
+class ProjectNote(GenericNote):
+    local_store = 'ProjectNotes'
 
 
 class Project(Model):
@@ -226,7 +239,7 @@ class Project(Model):
         args.update(kwargs)
         item = {
             'type': 'project_update',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -238,7 +251,7 @@ class Project(Model):
         """
         item = {
             'type': 'project_delete',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'ids': [self['id']],
             },
@@ -253,7 +266,7 @@ class Project(Model):
         """
         item = {
             'type': 'project_archive',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'id': self['id']
             },
@@ -268,7 +281,7 @@ class Project(Model):
         """
         item = {
             'type': 'project_unarchive',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'id': self['id']
             },
@@ -289,7 +302,7 @@ class Reminder(Model):
         args.update(kwargs)
         item = {
             'type': 'reminder_update',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -301,7 +314,7 @@ class Reminder(Model):
         """
         item = {
             'type': 'reminder_delete',
-            'timestamp': self.api._generate_timestamp(),
+            'timestamp': self.api.generate_timestamp(),
             'args': {
                 'id': self['id'],
             },

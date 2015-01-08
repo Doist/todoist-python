@@ -97,9 +97,9 @@ def test_query(api_token):
 
     cleanup(api)
 
-    inbox = api.project_get_by_name('Inbox')
-    item1 = api.item_add('Item1', inbox['id'], date_string='tomorrow')
-    item2 = api.item_add('Item2', inbox['id'], priority=4)
+    inbox = api.projects.get_by_name('Inbox')
+    item1 = api.items.add('Item1', inbox['id'], date_string='tomorrow')
+    item2 = api.items.add('Item2', inbox['id'], priority=4)
     api.commit()
     api.get()
 
@@ -180,13 +180,13 @@ def test_project(api_token):
 
     cleanup(api)
 
-    project1 = api.project_add('Project1')
+    project1 = api.projects.add('Project1')
     api.commit()
     response = api.get()
     assert response['Projects'][0]['name'] == 'Project1'
     assert 'Project1' in [p['name'] for p in api.state['Projects']]
-    assert api.project_get_by_id(project1['id']) == project1
-    assert api.project_get_by_name(project1['name']) == project1
+    assert api.projects.get_by_id(project1['id']) == project1
+    assert api.projects.get_by_name(project1['name']) == project1
 
     project1.archive()
     api.commit()
@@ -207,13 +207,13 @@ def test_project(api_token):
     response = api.get()
     assert response['Projects'][0]['name'] == 'UpdatedProject1'
     assert 'UpdatedProject1' in [p['name'] for p in api.state['Projects']]
-    assert api.project_get_by_id(project1['id']) == project1
-    assert api.project_get_by_name(project1['name']) == project1
+    assert api.projects.get_by_id(project1['id']) == project1
+    assert api.projects.get_by_name(project1['name']) == project1
 
-    project2 = api.project_add('Project2')
+    project2 = api.projects.add('Project2')
     api.commit()
     api.get()
-    api.project_update_orders_indents({project1['id']: [1, 2],
+    api.projects.update_orders_indents({project1['id']: [1, 2],
                                        project2['id']: [2, 3]})
     api.commit()
     response = api.get()
@@ -245,14 +245,14 @@ def test_item(api_token):
 
     cleanup(api)
 
-    inbox = api.project_get_by_name('Inbox')
-    item1 = api.item_add('Item1', inbox['id'])
+    inbox = api.projects.get_by_name('Inbox')
+    item1 = api.items.add('Item1', inbox['id'])
     api.commit()
     response = api.get()
     assert response['Items'][0]['content'] == 'Item1'
     assert 'Item1' in [p['content'] for p in api.state['Items']]
-    assert api.item_get_by_id(item1['id']) == item1
-    assert api.item_get_by_content(item1['content']) == item1
+    assert api.items.get_by_id(item1['id']) == item1
+    assert api.items.get_by_content(item1['content']) == item1
 
     item1.complete()
     api.commit()
@@ -268,7 +268,7 @@ def test_item(api_token):
     assert response['Items'][0]['checked'] == 0
     assert 'Item1' in [p['content'] for p in api.state['Items']]
 
-    project = api.project_add('Project1')
+    project = api.projects.add('Project1')
     api.commit()
     response = api.get()
 
@@ -283,14 +283,14 @@ def test_item(api_token):
     response = api.get()
     assert response['Items'][0]['content'] == 'UpdatedItem1'
     assert 'UpdatedItem1' in [p['content'] for p in api.state['Items']]
-    assert api.item_get_by_id(item1['id']) == item1
-    assert api.item_get_by_content(item1['content']) == item1
+    assert api.items.get_by_id(item1['id']) == item1
+    assert api.items.get_by_content(item1['content']) == item1
 
-    item2 = api.item_add('Item2', inbox['id'])
+    item2 = api.items.add('Item2', inbox['id'])
     api.commit()
     api.get()
 
-    api.item_uncomplete_update_meta(inbox['id'], {item1['id']: [0, 0, 1],
+    api.items.uncomplete_update_meta(inbox['id'], {item1['id']: [0, 0, 1],
                                                   item2['id']: [0, 0, 2]})
     api.commit()
     response = api.get()
@@ -303,12 +303,12 @@ def test_item(api_token):
     now = time.time()
     tomorrow = time.gmtime(now + 24*3600)
     new_date_utc = time.strftime("%Y-%m-%dT%H:%M", tomorrow)
-    api.item_update_date_complete(item1['id'], new_date_utc, 'every day', 0)
+    api.items.update_date_complete(item1['id'], new_date_utc, 'every day', 0)
     api.commit()
     response = api.get()
     assert response['Items'][0]['date_string'] == 'every day'
 
-    api.item_update_orders_indents({item1['id']: [2, 2],
+    api.items.update_orders_indents({item1['id']: [2, 2],
                                     item2['id']: [1, 3]})
     api.commit()
     response = api.get()
@@ -320,7 +320,7 @@ def test_item(api_token):
             assert item['item_order'] == 1
             assert item['indent'] == 3
 
-    api.item_update_day_orders({item1['id']: 1, item2['id']: 2})
+    api.items.update_day_orders({item1['id']: 1, item2['id']: 2})
     api.commit()
     response = api.get()
     for item in response['Items']:
@@ -350,19 +350,19 @@ def test_label(api_token):
 
     cleanup(api)
 
-    label1 = api.label_register('Label1')
+    label1 = api.labels.register('Label1')
     api.commit()
     response = api.get()
     assert response['Labels'][0]['name'] == 'Label1'
     assert 'Label1' in [p['name'] for p in api.state['Labels']]
-    assert api.label_get_by_id(label1['id']) == label1
+    assert api.labels.get_by_id(label1['id']) == label1
 
     label1.update(name='UpdatedLabel1')
     api.commit()
     response = api.get()
     assert response['Labels'][0]['name'] == 'UpdatedLabel1'
     assert 'UpdatedLabel1' in [p['name'] for p in api.state['Labels']]
-    assert api.label_get_by_id(label1['id']) == label1
+    assert api.labels.get_by_id(label1['id']) == label1
 
     label1.delete()
     api.commit()
@@ -380,24 +380,24 @@ def test_note(api_token):
 
     cleanup(api)
 
-    inbox = api.project_get_by_name('Inbox')
-    item = api.item_add('Item1', inbox['id'])
+    inbox = api.projects.get_by_name('Inbox')
+    item = api.items.add('Item1', inbox['id'])
     api.commit()
     response = api.get()
 
-    note1 = api.note_add(item['id'], 'Note1')
+    note1 = api.notes.add(item['id'], 'Note1')
     api.commit()
     response = api.get()
     assert response['Notes'][0]['content'] == 'Note1'
     assert 'Note1' in [p['content'] for p in api.state['Notes']]
-    assert api.note_get_by_id(note1['id']) == note1
+    assert api.notes.get_by_id(note1['id']) == note1
 
     note1.update(content='UpdatedNote1')
     api.commit()
     response = api.get()
     assert response['Notes'][0]['content'] == 'UpdatedNote1'
     assert 'UpdatedNote1' in [p['content'] for p in api.state['Notes']]
-    assert api.note_get_by_id(note1['id']) == note1
+    assert api.notes.get_by_id(note1['id']) == note1
 
     note1.delete()
     api.commit()
@@ -419,25 +419,25 @@ def test_filter(api_token):
 
     cleanup(api)
 
-    filter1 = api.filter_add('Filter1', 'no due date')
+    filter1 = api.filters.add('Filter1', 'no due date')
     api.commit()
     response = api.get()
     assert response['Filters'][0]['name'] == 'Filter1'
     assert 'Filter1' in [p['name'] for p in api.state['Filters']]
-    assert api.filter_get_by_id(filter1['id']) == filter1
+    assert api.filters.get_by_id(filter1['id']) == filter1
 
     filter1.update(name='UpdatedFilter1')
     api.commit()
     response = api.get()
     assert response['Filters'][0]['name'] == 'UpdatedFilter1'
     assert 'UpdatedFilter1' in [p['name'] for p in api.state['Filters']]
-    assert api.filter_get_by_id(filter1['id']) == filter1
+    assert api.filters.get_by_id(filter1['id']) == filter1
 
-    filter2 = api.filter_add('Filter2', 'today')
+    filter2 = api.filters.add('Filter2', 'today')
     api.commit()
     api.get()
 
-    api.filter_update_orders({filter1['id']: 2, filter2['id']: 1})
+    api.filters.update_orders({filter1['id']: 2, filter2['id']: 1})
     api.commit()
     response = api.get()
     for filter in response['Filters']:
@@ -466,25 +466,25 @@ def test_reminder(api_token):
 
     cleanup(api)
 
-    inbox = api.project_get_by_name('Inbox')
-    item = api.item_add('Item1', inbox['id'], date_string='tomorrow')
+    inbox = api.projects.get_by_name('Inbox')
+    item = api.items.add('Item1', inbox['id'], date_string='tomorrow')
     api.commit()
     api.get()
 
     # relative
-    reminder = api.reminder_add(item['id'], minute_offset=30)
+    reminder = api.reminders.add(item['id'], minute_offset=30)
     api.commit()
     response = api.get()
     assert response['Reminders'][0]['minute_offset'] == 30
     assert reminder['id'] in [p['id'] for p in api.state['Reminders']]
-    assert api.reminder_get_by_id(reminder['id']) == reminder
+    assert api.reminders.get_by_id(reminder['id']) == reminder
 
     reminder.update(minute_offset=str(15))
     api.commit()
     response = api.get()
     assert response['Reminders'][0]['minute_offset'] == 15
     assert reminder['id'] in [p['id'] for p in api.state['Reminders']]
-    assert api.reminder_get_by_id(reminder['id']) == reminder
+    assert api.reminders.get_by_id(reminder['id']) == reminder
 
     reminder.delete()
     api.commit()
@@ -498,13 +498,13 @@ def test_reminder(api_token):
     tomorrow = time.gmtime(now + 24*3600)
     due_date_utc = time.strftime("%Y-%m-%dT%H:%M", tomorrow)
     due_date_utc_long = time.strftime("%a %d %b %Y %H:%M:00 +0000", tomorrow)
-    reminder = api.reminder_add(item['id'], due_date_utc=due_date_utc)
+    reminder = api.reminders.add(item['id'], due_date_utc=due_date_utc)
     api.commit()
     response = api.get()
     tomorrow = time.gmtime(time.time() + 24*3600)
     assert response['Reminders'][0]['due_date_utc'] == due_date_utc_long
     assert reminder['id'] in [p['id'] for p in api.state['Reminders']]
-    assert api.reminder_get_by_id(reminder['id']) == reminder
+    assert api.reminders.get_by_id(reminder['id']) == reminder
 
     tomorrow = time.gmtime(now + 24*3600 + 60)
     due_date_utc = time.strftime("%Y-%m-%dT%H:%M", tomorrow)
@@ -514,7 +514,7 @@ def test_reminder(api_token):
     response = api.get()
     assert response['Reminders'][0]['due_date_utc'] == due_date_utc_long
     assert reminder['id'] in [p['id'] for p in api.state['Reminders']]
-    assert api.reminder_get_by_id(reminder['id']) == reminder
+    assert api.reminders.get_by_id(reminder['id']) == reminder
 
     reminder.delete()
     api.commit()
@@ -534,7 +534,7 @@ def test_live_notifications(api_token):
     api.sync_url = 'https://local.todoist.com/TodoistSync/v5.3/'
     api.get()
 
-    api.live_notifications_mark_as_read(api.state['LiveNotificationsLastRead'])
+    api.live_notifications.mark_as_read(api.state['LiveNotificationsLastRead'])
     api.commit()
     response = api.get()
     assert response['LiveNotificationsLastRead'] == \
@@ -557,7 +557,7 @@ def test_share(api_token, api_token2):
     cleanup(api2)
 
     # accept
-    project1 = api.project_add('Project1')
+    project1 = api.projects.add('Project1')
     api.commit()
     api.get()
 
@@ -574,7 +574,7 @@ def test_share(api_token, api_token2):
         api['User']['email']
     invitation = response2['LiveNotifications'][0]
 
-    api2.accept_invitation(invitation['invitation_id'],
+    api2.invitations.accept(invitation['invitation_id'],
                            invitation['invitation_secret'])
     api2.commit()
     response2 = api2.get()
@@ -595,12 +595,12 @@ def test_share(api_token, api_token2):
     assert response['Projects'][0]['shared']
 
     # ownership
-    project1 = api2.project_get_by_name('Project1')
+    project1 = api2.projects.get_by_name('Project1')
     api2.take_ownership(project1['id'])
     api2.commit()
     api2.get()
 
-    project1 = api.project_get_by_name('Project1')
+    project1 = api.projects.get_by_name('Project1')
     api.take_ownership(project1['id'])
     api.commit()
     api.get()
@@ -609,12 +609,12 @@ def test_share(api_token, api_token2):
     api.commit()
     api.get()
 
-    api.project_get_by_name('Project1').delete()
+    api.projects.get_by_name('Project1').delete()
     api.commit()
     api.get()
 
     # reject
-    project2 = api.project_add('Project2')
+    project2 = api.projects.add('Project2')
     api.commit()
     api.get()
 
@@ -631,8 +631,8 @@ def test_share(api_token, api_token2):
         api['User']['email']
     invitation = response2['LiveNotifications'][0]
 
-    api2.reject_invitation(invitation['invitation_id'],
-                           invitation['invitation_secret'])
+    api2.invitaitons.reject(invitation['invitation_id'],
+                            invitation['invitation_secret'])
     api2.commit()
     response2 = api2.get()
     assert response2['LiveNotifications'][0]['invitation_id'] == \
@@ -648,10 +648,10 @@ def test_share(api_token, api_token2):
         'share_invitation_rejected'
     assert not response['Projects'][0]['shared']
 
-    api.delete_invitation(invitation['invitation_id'])
+    api.invitations.delete(invitation['invitation_id'])
     api.commit()
     api.get()
 
-    api.project_get_by_name('Project2').delete()
+    api.projects.get_by_name('Project2').delete()
     api.commit()
     api.get()
