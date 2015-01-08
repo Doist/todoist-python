@@ -631,7 +631,7 @@ def test_share(api_token, api_token2):
         api['User']['email']
     invitation = response2['LiveNotifications'][0]
 
-    api2.invitaitons.reject(invitation['invitation_id'],
+    api2.invitations.reject(invitation['invitation_id'],
                             invitation['invitation_secret'])
     api2.commit()
     response2 = api2.get()

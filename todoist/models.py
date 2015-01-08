@@ -214,6 +214,7 @@ class GenericNote(Model):
             'timestamp': self.api.generate_timestamp(),
             'args': {
                 'note_id': self['id'],
+                'item_id': self['item_id'],
             },
         }
         self.api.queue.append(item)
