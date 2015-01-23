@@ -21,8 +21,7 @@ class TodoistAPI(object):
     account and its data.
     """
     def __init__(self, api_token='', api_endpoint='https://api.todoist.com'):
-        self.api_url = '%s/API/' % api_endpoint  # Standard API
-        self.sync_url = '%s/TodoistSync/v5.5/' % api_endpoint  # Sync API
+        self.api_url = '%s/API/v6/' % api_endpoint  # Todoist API
         self.seq_no = 0  # Sequence number since last update
         self.state = {  # Local copy of all of the user's objects
             'CollaboratorStates': [],
@@ -167,12 +166,9 @@ class TodoistAPI(object):
         # replaced by a real one.
         for datatype in ['Filters', 'Items', 'Labels', 'Notes', 'Projects',
                          'Reminders']:
-            key = 'id'
-            if datatype == 'Notes':
-                key = 'note_id'
             for obj in self.state[datatype]:
                 if obj.temp_id == temp_id:
-                    obj[key] = new_id
+                    obj['id'] = new_id
                     return True
         return False
 
@@ -185,8 +181,7 @@ class TodoistAPI(object):
             url = self.api_url
         response = requests.get(url + call, **kwargs)
         try:
-            json = response.json()
-            return json
+            return response.json()
         except ValueError:
             return response.text
 
@@ -196,7 +191,7 @@ class TodoistAPI(object):
         object received (if any), or whatever answer it got otherwise.
         """
         if not url:
-            url = self.sync_url
+            url = self.api_url
         response = requests.post(url + call, **kwargs)
         try:
             return response.json()
@@ -215,7 +210,6 @@ class TodoistAPI(object):
             self.timestamp_suffix += 1
         return str(self.timestamp) + '.' + str(self.timestamp_suffix)
 
-    # Standard API based calls
     def login(self, email, password):
         """
         Logins user, and returns the response received by the server.
@@ -234,23 +228,10 @@ class TodoistAPI(object):
         """
         params = {'email': email, 'oauth2_token': oauth2_token}
         params.update(kwargs)
-        data = self._get('loginWithGoogle', params=params)
+        data = self._get('login_with_google', params=params)
         if 'api_token' in data:
             self.api_token = data['api_token']
         return data
-
-    def ping(self):
-        """
-        Tests user's login token, and returns the response received by the
-        server.
-        """
-        return self._get('ping', params={'token': self.api_token})
-
-    def get_timezones(self):
-        """
-        Returns the timezones supported by the server.
-        """
-        return self._get('getTimezones')
 
     def register(self, email, full_name, password, **kwargs):
         """
@@ -263,6 +244,15 @@ class TodoistAPI(object):
             self.api_token = data['api_token']
         return data
 
+    def add_item(self, content, **kwargs):
+        """
+        Adds a new task.
+        """
+        params = {'token': self.api_token,
+                  'content': content}
+        params.update(kwargs)
+        return self._get('add_item', params=params)
+
     def delete_user(self, current_password, **kwargs):
         """
         Deletes an existing user.
@@ -270,7 +260,7 @@ class TodoistAPI(object):
         params = {'token': self.api_token,
                   'current_password': current_password}
         params.update(kwargs)
-        return self._get('deleteUser', params=params)
+        return self._get('delete_user', params=params)
 
     def get_redirect_link(self, **kwargs):
         """
@@ -278,13 +268,13 @@ class TodoistAPI(object):
         """
         params = {'token': self.api_token}
         params.update(kwargs)
-        return self._get('getRedirectLink', params=params)
+        return self._get('get_redirect_link', params=params)
 
     def get_productivity_stats(self):
         """
         Returns the user's recent productivity stats.
         """
-        return self._get('getProductivityStats',
+        return self._get('get_productivity_stats',
                          params={'token': self.api_token})
 
     def query(self, queries, **kwargs):
@@ -302,7 +292,7 @@ class TodoistAPI(object):
         params = {'token': self.api_token}
         params.update(kwargs)
         files = {'file': open(filename, 'rb')}
-        return self._post('uploadFile', self.api_url, params=params,
+        return self._post('upload_file', self.api_url, params=params,
                           files=files)
 
     def update_notification_setting(self, notification_type, service,
@@ -310,39 +300,13 @@ class TodoistAPI(object):
         """
         Updates the user's notification settings.
         """
-        return self._get('updateNotificationSetting',
+        return self._get('update_notification_setting',
                          params={'token': self.api_token,
                                  'notification_type': notification_type,
                                  'service': service,
                                  'dont_notify': dont_notify})
 
-    # Sync API based calls
-    def get(self, **kwargs):
-        """
-        Retrieves all or only updated data from the server.
-        """
-        params = {'seq_no': self.seq_no,
-                  'api_token': self.api_token,
-                  'day_orders_timestamp': self.state['DayOrdersTimestamp']}
-        params.update(kwargs)
-        data = self._post('get', params=params)
-        self._update_state(data)
-        if 'seq_no' in data:
-            self.seq_no = data['seq_no']
-        return data
-
     def sync(self, items_to_sync=[], **kwargs):
-        """
-        Sends to the server the changes that took place locally.
-        """
-        params = {'api_token': self.api_token,
-                  'items_to_sync': json.dumps(items_to_sync)}
-        params.update(kwargs)
-        data = self._post('sync', params=params)
-        self._update_state(data)
-        return data
-
-    def sync_and_get_updated(self, items_to_sync=[], **kwargs):
         """
         Sends to the server the changes that were made locally, and also
         fetches the latest updated data from the server.
@@ -352,13 +316,11 @@ class TodoistAPI(object):
                   'items_to_sync': json.dumps(items_to_sync),
                   'day_orders_timestamp': self.state['DayOrdersTimestamp']}
         params.update(kwargs)
-        data = self._post('syncAndGetUpdated', params=params)
+        data = self._post('sync', params=params)
         self._update_state(data)
         if 'seq_no' in data:
             self.seq_no = data['seq_no']
         return data
-
-    default_action = sync_and_get_updated  # Preferred Sync API call to use
 
     def commit(self):
         """
@@ -369,12 +331,13 @@ class TodoistAPI(object):
         """
         if len(self.queue) == 0:
             return
-        ret = self.default_action(items_to_sync=self.queue)
+        ret = self.sync(items_to_sync=self.queue)
         del self.queue[:]
         if 'TempIdMapping' in ret:
             for temp_id, new_id in ret['TempIdMapping'].items():
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
+        return ret['SyncStatus']
 
     # User
     def user_update(self, **kwargs):
@@ -382,7 +345,6 @@ class TodoistAPI(object):
         Updates the user data, and appends the equivalent request to the queue.
         """
         self.state['User'].update(kwargs)
-        kwargs['token'] = self.api_token
         item = {
             'type': 'user_update',
             'timestamp': self.generate_timestamp(),
@@ -431,7 +393,7 @@ class TodoistAPI(object):
             'type': 'take_ownership',
             'timestamp': self.generate_timestamp(),
             'args': {
-                'id': project_id,
+                'project_id': project_id,
             },
         }
         self.queue.append(item)
