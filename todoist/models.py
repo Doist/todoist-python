@@ -195,7 +195,7 @@ class GenericNote(Model):
         """
         Updates note, and appends the equivalent request to the queue.
         """
-        args = {'note_id': self['id']}
+        args = {'id': self['id']}
         args.update(kwargs)
         item = {
             'type': 'note_update',
@@ -213,16 +213,17 @@ class GenericNote(Model):
             'type': 'note_delete',
             'timestamp': self.api.generate_timestamp(),
             'args': {
-                'note_id': self['id'],
-                'item_id': self['item_id'],
+                'id': self['id'],
             },
         }
         self.api.queue.append(item)
         self.data['is_deleted'] = 1
         self.api.state[self.local_store].remove(self)
 
+
 class Note(GenericNote):
     local_store = 'Notes'
+
 
 class ProjectNote(GenericNote):
     local_store = 'ProjectNotes'
