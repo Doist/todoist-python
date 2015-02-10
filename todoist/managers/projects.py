@@ -7,15 +7,6 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin):
 
     state_name = 'Projects'
 
-    def get_by_name(self, name):
-        """
-        Finds and returns project based on its name.
-        """
-        for obj in self.state[self.state_name]:
-            if obj['name'] == name:
-                return obj
-        return None
-
     def add(self, name, **kwargs):
         """
         Adds a project to the local state, and appends the equivalent request

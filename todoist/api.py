@@ -398,6 +398,25 @@ class TodoistAPI(object):
         }
         self.queue.append(item)
 
+    def collaborators_get_by_id(self, user_id):
+        """
+        Finds and returns the collaborator based on the user id.
+        """
+        for obj in self.state['Collaborators']:
+            if obj['id'] == user_id:
+                return obj
+        return None
+
+    def collaborator_state_get_by_ids(self, project_id, user_id):
+        """
+        Finds and returns the collaborator state based on the project and user
+        id.
+        """
+        for obj in self.state['CollaboratorStates']:
+            if obj['project_id'] == project_id and obj['user_id'] == user_id:
+                return obj
+        return None
+
     def __repr__(self):
         name = self.__class__.__name__
         unsaved = '*' if len(self.queue) > 0 else ''

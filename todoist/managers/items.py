@@ -7,15 +7,6 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin):
 
     state_name = 'Items'
 
-    def get_by_content(self, content):
-        """
-        Finds and returns item based on its content.
-        """
-        for obj in self.state[self.state_name]:
-            if obj['content'] == content:
-                return obj
-        return None
-
     def add(self, content, project_id, **kwargs):
         """
         Adds an item to the local state, and appends the equivalent request to

@@ -78,7 +78,7 @@ def test_query(api_token):
 
     cleanup(api)
 
-    inbox = api.projects.get_by_name('Inbox')
+    inbox = [p for p in api.state['Projects'] if p['name'] == 'Inbox'][0]
     item1 = api.items.add('Item1', inbox['id'], date_string='tomorrow')
     item2 = api.items.add('Item2', inbox['id'], priority=4)
     api.commit()
@@ -151,7 +151,6 @@ def test_project(api_token):
     assert response['Projects'][0]['name'] == 'Project1'
     assert 'Project1' in [p['name'] for p in api.state['Projects']]
     assert api.projects.get_by_id(project1['id']) == project1
-    assert api.projects.get_by_name(project1['name']) == project1
 
     project1.archive()
     api.commit()
@@ -173,7 +172,6 @@ def test_project(api_token):
     assert response['Projects'][0]['name'] == 'UpdatedProject1'
     assert 'UpdatedProject1' in [p['name'] for p in api.state['Projects']]
     assert api.projects.get_by_id(project1['id']) == project1
-    assert api.projects.get_by_name(project1['name']) == project1
 
     project2 = api.projects.add('Project2')
     api.commit()
@@ -213,21 +211,19 @@ def test_item(api_token):
     assert response['content'] == 'Item1'
     api.sync()
     assert 'Item1' in [p['content'] for p in api.state['Items']]
-    item1 = api.items.get_by_content('Item1')
+    item1 = [i for i in api.state['Items'] if i['content'] == 'Item1'][0]
     assert api.items.get_by_id(item1['id']) == item1
-    assert api.items.get_by_content(item1['content']) == item1
     item1.delete()
     api.commit()
     api.sync()
 
-    inbox = api.projects.get_by_name('Inbox')
+    inbox = [p for p in api.state['Projects'] if p['name'] == 'Inbox'][0]
     item1 = api.items.add('Item1', inbox['id'])
     api.commit()
     response = api.sync()
     assert response['Items'][0]['content'] == 'Item1'
     assert 'Item1' in [p['content'] for p in api.state['Items']]
     assert api.items.get_by_id(item1['id']) == item1
-    assert api.items.get_by_content(item1['content']) == item1
 
     item1.complete()
     api.commit()
@@ -259,14 +255,13 @@ def test_item(api_token):
     assert response['Items'][0]['content'] == 'UpdatedItem1'
     assert 'UpdatedItem1' in [p['content'] for p in api.state['Items']]
     assert api.items.get_by_id(item1['id']) == item1
-    assert api.items.get_by_content(item1['content']) == item1
 
     item2 = api.items.add('Item2', inbox['id'])
     api.commit()
     api.sync()
 
     api.items.uncomplete_update_meta(inbox['id'], {item1['id']: [0, 0, 1],
-                                                  item2['id']: [0, 0, 2]})
+                                                   item2['id']: [0, 0, 2]})
     api.commit()
     response = api.sync()
     for item in response['Items']:
@@ -353,7 +348,7 @@ def test_note(api_token):
 
     cleanup(api)
 
-    inbox = api.projects.get_by_name('Inbox')
+    inbox = [p for p in api.state['Projects'] if p['name'] == 'Inbox'][0]
     item = api.items.add('Item1', inbox['id'])
     api.commit()
     response = api.sync()
@@ -437,7 +432,7 @@ def test_reminder(api_token):
 
     cleanup(api)
 
-    inbox = api.projects.get_by_name('Inbox')
+    inbox = [p for p in api.state['Projects'] if p['name'] == 'Inbox'][0]
     item = api.items.add('Item1', inbox['id'], date_string='tomorrow')
     api.commit()
     api.sync()
@@ -543,7 +538,7 @@ def test_share(api_token, api_token2):
     invitation = response2['LiveNotifications'][0]
 
     api2.invitations.accept(invitation['invitation_id'],
-                           invitation['invitation_secret'])
+                            invitation['invitation_secret'])
     api2.commit()
     response2 = api2.sync()
     assert response2['LiveNotifications'][0]['invitation_id'] == \
@@ -563,12 +558,12 @@ def test_share(api_token, api_token2):
     assert response['Projects'][0]['shared']
 
     # ownership
-    project1 = api2.projects.get_by_name('Project1')
+    project1 = [p for p in api2.state['Projects'] if p['name'] == 'Project1'][0]
     api2.take_ownership(project1['id'])
     api2.commit()
     api2.sync()
 
-    project1 = api.projects.get_by_name('Project1')
+    project1 = [p for p in api.state['Projects'] if p['name'] == 'Project1'][0]
     api.take_ownership(project1['id'])
     api.commit()
     api.sync()
@@ -577,7 +572,8 @@ def test_share(api_token, api_token2):
     api.commit()
     api.sync()
 
-    api.projects.get_by_name('Project1').delete()
+    project1 = [p for p in api.state['Projects'] if p['name'] == 'Project1'][0]
+    project1.delete()
     api.commit()
     api.sync()
 
@@ -616,7 +612,8 @@ def test_share(api_token, api_token2):
         'share_invitation_rejected'
     assert not response['Projects'][0]['shared']
 
-    api.projects.get_by_name('Project2').delete()
+    project2 = [p for p in api.state['Projects'] if p['name'] == 'Project2'][0]
+    project2.delete()
     api.commit()
     api.sync()
 
@@ -642,6 +639,7 @@ def test_share(api_token, api_token2):
     api.commit()
     api.sync()
 
-    api.projects.get_by_name('Project3').delete()
+    project3 = [p for p in api.state['Projects'] if p['name'] == 'Project3'][0]
+    project3.delete()
     api.commit()
     api.sync()
