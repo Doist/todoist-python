@@ -123,7 +123,7 @@ def test_user(api_token):
     api.sync()
     date_format = api.state['User']['date_format']
     date_format_new = 1 - date_format
-    api.user_update(date_format=date_format_new)
+    api.user.update(date_format=date_format_new)
     api.commit()
     api.seq_no = 0
     api.sync()
