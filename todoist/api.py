@@ -306,14 +306,14 @@ class TodoistAPI(object):
                                  'service': service,
                                  'dont_notify': dont_notify})
 
-    def sync(self, items_to_sync=[], **kwargs):
+    def sync(self, commands=[], **kwargs):
         """
         Sends to the server the changes that were made locally, and also
         fetches the latest updated data from the server.
         """
         params = {'seq_no': self.seq_no,
                   'api_token': self.api_token,
-                  'items_to_sync': json.dumps(items_to_sync),
+                  'commands': json.dumps(commands),
                   'day_orders_timestamp': self.state['DayOrdersTimestamp']}
         params.update(kwargs)
         data = self._post('sync', params=params)
@@ -331,7 +331,7 @@ class TodoistAPI(object):
         """
         if len(self.queue) == 0:
             return
-        ret = self.sync(items_to_sync=self.queue)
+        ret = self.sync(commands=self.queue)
         del self.queue[:]
         if 'TempIdMapping' in ret:
             for temp_id, new_id in ret['TempIdMapping'].items():
