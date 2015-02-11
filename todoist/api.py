@@ -23,6 +23,7 @@ class TodoistAPI(object):
     def __init__(self, api_token='', api_endpoint='https://api.todoist.com'):
         self.api_url = '%s/API/v6/' % api_endpoint  # Todoist API
         self.seq_no = 0  # Sequence number since last update
+        self.seq_no_partial = {}  # Sequence number of partial syncs
         self.state = {  # Local copy of all of the user's objects
             'CollaboratorStates': [],
             'Collaborators': [],
@@ -155,6 +156,33 @@ class TodoistAPI(object):
             return self.reminders.get_by_id(obj['id'])
         else:
             return None
+
+    def _get_seq_no(self, resource_types):
+        """
+        Calculates what is the seq_no that should be sent, based on the last
+        seq_no and the resource_types that are requested.
+        """
+        seq_no = self.seq_no
+        if resource_types:
+            for resource in resource_types:
+                if resource in self.seq_no_partial:
+                    if seq_no == 0 or self.seq_no_partial[resource] < seq_no:
+                        seq_no = self.seq_no_partial[resource]
+        return seq_no
+
+    def _update_seq_no(self, seq_no, resource_types):
+        """
+        Updates the seq_no and the seq_no_partial, based on the seq_no in
+        the response and the resource_types that were requested.
+        """
+        if not seq_no:
+            return
+        if resource_types and seq_no > self.seq_no:
+            for resource in resource_types:
+                self.seq_no_partial[resource] = seq_no
+        else:
+            self.seq_no = seq_no
+            self.seq_no_partial = {}
 
     def _replace_temp_id(self, temp_id, new_id):
         """
@@ -311,15 +339,22 @@ class TodoistAPI(object):
         Sends to the server the changes that were made locally, and also
         fetches the latest updated data from the server.
         """
-        params = {'seq_no': self.seq_no,
-                  'api_token': self.api_token,
-                  'commands': json.dumps(commands),
-                  'day_orders_timestamp': self.state['DayOrdersTimestamp']}
-        params.update(kwargs)
+        params = {
+            'seq_no': self._get_seq_no(kwargs.get('resource_types', None)),
+            'api_token': self.api_token,
+            'commands': json.dumps(commands),
+            'day_orders_timestamp': self.state['DayOrdersTimestamp'],
+        }
+        if 'include_notification_settings' in kwargs:
+            params['include_notification_settings'] = 1
+        if 'resource_types' in kwargs:
+            params['resource_types'] = json.dumps(kwargs['resource_types'])
+        print(params)
         data = self._post('sync', params=params)
         self._update_state(data)
-        if 'seq_no' in data:
-            self.seq_no = data['seq_no']
+        self._update_seq_no(data.get('seq_no', None),
+                            kwargs.get('resource_types', None))
+
         return data
 
     def commit(self):
