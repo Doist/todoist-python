@@ -349,7 +349,6 @@ class TodoistAPI(object):
             params['include_notification_settings'] = 1
         if 'resource_types' in kwargs:
             params['resource_types'] = json.dumps(kwargs['resource_types'])
-        print(params)
         data = self._post('sync', params=params)
         self._update_state(data)
         self._update_seq_no(data.get('seq_no', None),
