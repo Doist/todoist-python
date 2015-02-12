@@ -13,6 +13,7 @@ from todoist.managers.project_notes import ProjectNotesManager
 from todoist.managers.items import ItemsManager
 from todoist.managers.labels import LabelsManager
 from todoist.managers.reminders import RemindersManager
+from todoist.managers.user import UserManager
 
 
 class TodoistAPI(object):
@@ -61,6 +62,7 @@ class TodoistAPI(object):
         self.reminders = RemindersManager(self)
         self.invitations = InvitationsManager(self)
         self.biz_invitations = BizInvitationsManager(self)
+        self.user = UserManager(self)
 
     def __getitem__(self, key):
         return self.state[key]
@@ -334,7 +336,7 @@ class TodoistAPI(object):
                                  'service': service,
                                  'dont_notify': dont_notify})
 
-    def sync(self, commands=[], **kwargs):
+    def sync(self, commands=None, **kwargs):
         """
         Sends to the server the changes that were made locally, and also
         fetches the latest updated data from the server.
@@ -342,7 +344,7 @@ class TodoistAPI(object):
         params = {
             'seq_no': self._get_seq_no(kwargs.get('resource_types', None)),
             'token': self.token,
-            'commands': json.dumps(commands),
+            'commands': json.dumps(commands or []),
             'day_orders_timestamp': self.state['DayOrdersTimestamp'],
         }
         if 'include_notification_settings' in kwargs:
@@ -372,19 +374,6 @@ class TodoistAPI(object):
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
         return ret['SyncStatus']
-
-    # User
-    def user_update(self, **kwargs):
-        """
-        Updates the user data, and appends the equivalent request to the queue.
-        """
-        self.state['User'].update(kwargs)
-        item = {
-            'type': 'user_update',
-            'timestamp': self.generate_timestamp(),
-            'args': kwargs,
-        }
-        self.queue.append(item)
 
     # Sharing
     def share_project(self, project_id, email, message='', **kwargs):
