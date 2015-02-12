@@ -26,11 +26,14 @@ def cleanup(api):
     api.sync()
 
 
-def test_login(user_email, user_password):
+def test_login(user_email, user_password, api_token):
     api = todoist.api.TodoistAPI()
     api.api_url = 'https://local.todoist.com/API/v6/'
     response = api.login(user_email, user_password)
+    assert 'api_token' in response
+    assert response['api_token'] == api_token
     assert 'token' in response
+    assert response['token'] == api_token
     response = api.sync()
     assert 'Projects' in response
     assert 'Items' in response
