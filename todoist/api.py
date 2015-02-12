@@ -20,7 +20,7 @@ class TodoistAPI(object):
     Implements the API that makes it possible to interact with a Todoist user
     account and its data.
     """
-    def __init__(self, api_token='', api_endpoint='https://api.todoist.com'):
+    def __init__(self, token='', api_endpoint='https://api.todoist.com'):
         self.api_url = '%s/API/v6/' % api_endpoint  # Todoist API
         self.seq_no = 0  # Sequence number since last update
         self.seq_no_partial = {}  # Sequence number of partial syncs
@@ -44,7 +44,7 @@ class TodoistAPI(object):
             'UserId': -1,
             'WebStaticVersion': -1,
         }
-        self.api_token = api_token  # User's API token
+        self.token = token  # User's API token
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
         self.timestamp = -1
@@ -244,8 +244,8 @@ class TodoistAPI(object):
         """
         data = self._get('login', params={'email': email,
                                           'password': password})
-        if 'api_token' in data:
-            self.api_token = data['api_token']
+        if 'token' in data:
+            self.token = data['token']
         return data
 
     def login_with_google(self, email, oauth2_token, **kwargs):
@@ -257,8 +257,8 @@ class TodoistAPI(object):
         params = {'email': email, 'oauth2_token': oauth2_token}
         params.update(kwargs)
         data = self._get('login_with_google', params=params)
-        if 'api_token' in data:
-            self.api_token = data['api_token']
+        if 'token' in data:
+            self.token = data['token']
         return data
 
     def register(self, email, full_name, password, **kwargs):
@@ -268,15 +268,15 @@ class TodoistAPI(object):
         params = {'email': email, 'full_name': full_name, 'password': password}
         params.update(kwargs)
         data = self._get('register', params=params)
-        if 'api_token' in data:
-            self.api_token = data['api_token']
+        if 'token' in data:
+            self.token = data['token']
         return data
 
     def add_item(self, content, **kwargs):
         """
         Adds a new task.
         """
-        params = {'token': self.api_token,
+        params = {'token': self.token,
                   'content': content}
         params.update(kwargs)
         return self._get('add_item', params=params)
@@ -285,7 +285,7 @@ class TodoistAPI(object):
         """
         Deletes an existing user.
         """
-        params = {'token': self.api_token,
+        params = {'token': self.token,
                   'current_password': current_password}
         params.update(kwargs)
         return self._get('delete_user', params=params)
@@ -294,7 +294,7 @@ class TodoistAPI(object):
         """
         Returns the absolute URL to redirect or to open in a browser.
         """
-        params = {'token': self.api_token}
+        params = {'token': self.token}
         params.update(kwargs)
         return self._get('get_redirect_link', params=params)
 
@@ -303,13 +303,13 @@ class TodoistAPI(object):
         Returns the user's recent productivity stats.
         """
         return self._get('get_productivity_stats',
-                         params={'token': self.api_token})
+                         params={'token': self.token})
 
     def query(self, queries, **kwargs):
         """
         Performs date queries and other searches, and returns the results.
         """
-        params = {'queries': json.dumps(queries), 'token': self.api_token}
+        params = {'queries': json.dumps(queries), 'token': self.token}
         params.update(kwargs)
         return self._get('query', params=params)
 
@@ -317,7 +317,7 @@ class TodoistAPI(object):
         """
         Uploads a file.
         """
-        params = {'token': self.api_token}
+        params = {'token': self.token}
         params.update(kwargs)
         files = {'file': open(filename, 'rb')}
         return self._post('upload_file', self.api_url, params=params,
@@ -329,7 +329,7 @@ class TodoistAPI(object):
         Updates the user's notification settings.
         """
         return self._get('update_notification_setting',
-                         params={'token': self.api_token,
+                         params={'token': self.token,
                                  'notification_type': notification_type,
                                  'service': service,
                                  'dont_notify': dont_notify})
@@ -341,7 +341,7 @@ class TodoistAPI(object):
         """
         params = {
             'seq_no': self._get_seq_no(kwargs.get('resource_types', None)),
-            'api_token': self.api_token,
+            'token': self.token,
             'commands': json.dumps(commands),
             'day_orders_timestamp': self.state['DayOrdersTimestamp'],
         }

@@ -30,7 +30,7 @@ def test_login(user_email, user_password):
     api = todoist.api.TodoistAPI()
     api.api_url = 'https://local.todoist.com/API/v6/'
     response = api.login(user_email, user_password)
-    assert 'api_token' in response
+    assert 'token' in response
     response = api.sync()
     assert 'Projects' in response
     assert 'Items' in response
