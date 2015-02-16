@@ -6,6 +6,7 @@ from .generic import Manager, AllMixin, GetByIdMixin
 class FiltersManager(Manager, AllMixin, GetByIdMixin):
 
     state_name = 'Filters'
+    object_type = 'filter'
 
     def add(self, name, query, **kwargs):
         """

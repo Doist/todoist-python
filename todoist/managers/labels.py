@@ -6,6 +6,7 @@ from .generic import Manager, AllMixin, GetByIdMixin
 class LabelsManager(Manager, AllMixin, GetByIdMixin):
 
     state_name = 'Labels'
+    object_type = 'label'
 
     def register(self, name, **kwargs):
         """

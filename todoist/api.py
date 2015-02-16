@@ -440,6 +440,57 @@ class TodoistAPI(object):
                 return obj
         return None
 
+    # Auxiliary
+    def get_project(self, project_id):
+        """
+        Gets an existing project.
+        """
+        params = {'token': self.token,
+                  'project_id': project_id}
+        return self._get('get_project', params=params)
+
+    def get_item(self, item_id):
+        """
+        Gets an existing item.
+        """
+        params = {'token': self.token,
+                  'item_id': item_id}
+        result = self._get('get_item', params=params)
+        print(result)
+        return result
+
+    def get_label(self, label_id):
+        """
+        Gets an existing label.
+        """
+        params = {'token': self.token,
+                  'label_id': label_id}
+        return self._get('get_label', params=params)
+
+    def get_note(self, note_id):
+        """
+        Gets an existing note.
+        """
+        params = {'token': self.token,
+                  'note_id': note_id}
+        return self._get('get_note', params=params)
+
+    def get_filter(self, filter_id):
+        """
+        Gets an existing filter.
+        """
+        params = {'token': self.token,
+                  'filter_id': filter_id}
+        return self._get('get_filter', params=params)
+
+    def get_reminder(self, reminder_id):
+        """
+        Gets an existing reminder.
+        """
+        params = {'token': self.token,
+                  'reminder_id': reminder_id}
+        return self._get('get_reminder', params=params)
+
     def __repr__(self):
         name = self.__class__.__name__
         unsaved = '*' if len(self.queue) > 0 else ''

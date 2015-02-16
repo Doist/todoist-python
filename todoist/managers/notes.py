@@ -6,6 +6,7 @@ from .generic import Manager, AllMixin, GetByIdMixin
 class NotesManager(Manager, AllMixin, GetByIdMixin):
 
     state_name = 'Notes'
+    object_type = 'note'
 
     def add(self, item_id, content, **kwargs):
         """

@@ -6,6 +6,7 @@ from .generic import Manager, AllMixin, GetByIdMixin
 class ProjectsManager(Manager, AllMixin, GetByIdMixin):
 
     state_name = 'Projects'
+    object_type = 'project'
 
     def add(self, name, **kwargs):
         """

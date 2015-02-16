@@ -6,6 +6,7 @@ from .generic import Manager, AllMixin, GetByIdMixin
 class RemindersManager(Manager, AllMixin, GetByIdMixin):
 
     state_name = 'Reminders'
+    object_type = 'reminder'
 
     def add(self, item_id, **kwargs):
         """
