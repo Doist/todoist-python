@@ -455,9 +455,7 @@ class TodoistAPI(object):
         """
         params = {'token': self.token,
                   'item_id': item_id}
-        result = self._get('get_item', params=params)
-        print(result)
-        return result
+        return self._get('get_item', params=params)
 
     def get_label(self, label_id):
         """
