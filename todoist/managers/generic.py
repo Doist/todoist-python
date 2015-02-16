@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 class Manager(object):
 
     # should be re-defined in a subclass
@@ -9,9 +7,16 @@ class Manager(object):
 
     def __init__(self, api):
         self.api = api
-        # shortcuts
-        self.state = self.api.state
-        self.queue = self.api.queue
+
+    # shortcuts
+
+    @property
+    def state(self):
+        return self.api.state
+
+    @property
+    def queue(self):
+        return self.api.queue
 
 
 class AllMixin(object):

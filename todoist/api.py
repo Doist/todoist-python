@@ -21,6 +21,17 @@ class TodoistAPI(object):
     Implements the API that makes it possible to interact with a Todoist user
     account and its data.
     """
+    _serialize_fields = ('token', 'api_url', 'seq_no', 'seq_no_partial',
+                         'state', 'temp_ids', 'timestamp', 'timestamp_suffix')
+
+    @classmethod
+    def deserialize(cls, data):
+        obj = cls()
+        for key in cls._serialize_fields:
+            if key in data:
+                setattr(obj, key, data[key])
+        return obj
+
     def __init__(self, token='', api_endpoint='https://api.todoist.com'):
         self.api_url = '%s/API/v6/' % api_endpoint  # Todoist API
         self.seq_no = 0  # Sequence number since last update
@@ -66,6 +77,9 @@ class TodoistAPI(object):
 
     def __getitem__(self, key):
         return self.state[key]
+
+    def serialize(self):
+        return {key: getattr(self, key) for key in self._serialize_fields}
 
     def _update_state(self, syncdata):
         """

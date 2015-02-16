@@ -5,7 +5,7 @@ from .generic import Manager
 class UserManager(Manager):
 
     def refresh(self):
-        self.api.sync(resource_types=[])
+        return self.api.sync(resource_types=[])
 
     def update(self, **kwargs):
         """
