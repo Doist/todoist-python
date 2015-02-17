@@ -155,21 +155,21 @@ class TodoistAPI(object):
             return self.collaborator_state_get_by_ids(obj['project_id'],
                                                       obj['user_id'])
         elif objtype == 'Filters':
-            return self.filters.get_by_id(obj['id'])
+            return self.filters.get_by_id(obj['id'], only_local=True)
         elif objtype == 'Items':
-            return self.items.get_by_id(obj['id'])
+            return self.items.get_by_id(obj['id'], only_local=True)
         elif objtype == 'Labels':
-            return self.labels.get_by_id(obj['id'])
+            return self.labels.get_by_id(obj['id'], only_local=True)
         elif objtype == 'LiveNotifications':
             return self.live_notifications.get_by_key(obj['notification_key'])
         elif objtype == 'Notes':
-            return self.notes.get_by_id(obj['id'])
+            return self.notes.get_by_id(obj['id'], only_local=True)
         elif objtype == 'ProjectNotes':
-            return self.project_notes.get_by_id(obj['id'])
+            return self.project_notes.get_by_id(obj['id'], only_local=True)
         elif objtype == 'Projects':
-            return self.projects.get_by_id(obj['id'])
+            return self.projects.get_by_id(obj['id'], only_local=True)
         elif objtype == 'Reminders':
-            return self.reminders.get_by_id(obj['id'])
+            return self.reminders.get_by_id(obj['id'], only_local=True)
         else:
             return None
 

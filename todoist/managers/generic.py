@@ -26,7 +26,7 @@ class AllMixin(object):
 
 class GetByIdMixin(object):
 
-    def get_by_id(self, obj_id):
+    def get_by_id(self, obj_id, only_local=False):
         """
         Finds and returns the object based on its id.
         """
@@ -34,8 +34,10 @@ class GetByIdMixin(object):
             if obj['id'] == obj_id or obj.temp_id == str(obj_id):
                 return obj
 
-        obj = eval('self.api.get_' + self.object_type)(obj_id)
-        if self.object_type in obj and 'error' not in obj[self.object_type]:
-            return obj[self.object_type]
+        if not only_local:
+            obj = eval('self.api.get_' + self.object_type)(obj_id)
+            if self.object_type in obj and \
+               'error' not in obj[self.object_type]:
+                return obj[self.object_type]
 
         return None
