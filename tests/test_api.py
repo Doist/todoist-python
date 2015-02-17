@@ -120,6 +120,38 @@ def test_upload(api_token):
     os.remove(filename)
 
 
+def test_completed(api_token):
+    api = todoist.api.TodoistAPI(api_token)
+    api.api_url = 'https://local.todoist.com/API/v6/'
+    api.sync()
+
+    cleanup(api)
+
+    inbox = [p for p in api.state['Projects'] if p['name'] == 'Inbox'][0]
+    item1 = api.items.add('Item1', inbox['id'])
+    item2 = api.items.add('Item2', inbox['id'])
+    api.commit()
+    api.sync()
+    item1.complete()
+    item2.complete()
+    api.commit()
+    api.sync()
+
+    response = api.get_all_completed_items()
+    assert len(response['items']) == 2
+    assert 'Item1' in [item['content'] for item in response['items']]
+    assert 'Item2' in [item['content'] for item in response['items']]
+
+    item1.uncomplete()
+    item2.uncomplete()
+    api.commit()
+    api.sync()
+    item1.delete()
+    item2.delete()
+    api.commit()
+    api.sync()
+
+
 def test_user(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_url = 'https://local.todoist.com/API/v6/'
@@ -561,7 +593,8 @@ def test_share(api_token, api_token2):
     assert response['Projects'][0]['shared']
 
     # ownership
-    project1 = [p for p in api2.state['Projects'] if p['name'] == 'Project1'][0]
+    project1 = [p for p in api2.state['Projects']
+                if p['name'] == 'Project1'][0]
     api2.take_ownership(project1['id'])
     api2.commit()
     api2.sync()

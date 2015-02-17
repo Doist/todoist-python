@@ -350,6 +350,14 @@ class TodoistAPI(object):
                                  'service': service,
                                  'dont_notify': dont_notify})
 
+    def get_all_completed_items(self, **kwargs):
+        """
+        Returns all user's completed items.
+        """
+        params = {'token': self.token}
+        params.update(kwargs)
+        return self._get('get_all_completed_items', params=params)
+
     def sync(self, commands=None, **kwargs):
         """
         Sends to the server the changes that were made locally, and also
