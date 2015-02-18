@@ -242,6 +242,7 @@ class TodoistAPI(object):
         except ValueError:
             return response.text
 
+    # Sync
     def generate_timestamp(self):
         """
         Generates a timestamp, which is based on the current unix time.
@@ -253,110 +254,6 @@ class TodoistAPI(object):
         else:
             self.timestamp_suffix += 1
         return str(self.timestamp) + '.' + str(self.timestamp_suffix)
-
-    def login(self, email, password):
-        """
-        Logins user, and returns the response received by the server.
-        """
-        data = self._get('login', params={'email': email,
-                                          'password': password})
-        if 'token' in data:
-            self.token = data['token']
-        return data
-
-    def login_with_google(self, email, oauth2_token, **kwargs):
-        """
-        Logins user with Google account, and returns the response received by
-        the server.
-
-        """
-        params = {'email': email, 'oauth2_token': oauth2_token}
-        params.update(kwargs)
-        data = self._get('login_with_google', params=params)
-        if 'token' in data:
-            self.token = data['token']
-        return data
-
-    def register(self, email, full_name, password, **kwargs):
-        """
-        Registers a new user.
-        """
-        params = {'email': email, 'full_name': full_name, 'password': password}
-        params.update(kwargs)
-        data = self._get('register', params=params)
-        if 'token' in data:
-            self.token = data['token']
-        return data
-
-    def add_item(self, content, **kwargs):
-        """
-        Adds a new task.
-        """
-        params = {'token': self.token,
-                  'content': content}
-        params.update(kwargs)
-        return self._get('add_item', params=params)
-
-    def delete_user(self, current_password, **kwargs):
-        """
-        Deletes an existing user.
-        """
-        params = {'token': self.token,
-                  'current_password': current_password}
-        params.update(kwargs)
-        return self._get('delete_user', params=params)
-
-    def get_redirect_link(self, **kwargs):
-        """
-        Returns the absolute URL to redirect or to open in a browser.
-        """
-        params = {'token': self.token}
-        params.update(kwargs)
-        return self._get('get_redirect_link', params=params)
-
-    def get_productivity_stats(self):
-        """
-        Returns the user's recent productivity stats.
-        """
-        return self._get('get_productivity_stats',
-                         params={'token': self.token})
-
-    def query(self, queries, **kwargs):
-        """
-        Performs date queries and other searches, and returns the results.
-        """
-        params = {'queries': json.dumps(queries), 'token': self.token}
-        params.update(kwargs)
-        return self._get('query', params=params)
-
-    def upload_file(self, filename, **kwargs):
-        """
-        Uploads a file.
-        """
-        params = {'token': self.token}
-        params.update(kwargs)
-        files = {'file': open(filename, 'rb')}
-        return self._post('upload_file', self.api_url, params=params,
-                          files=files)
-
-    def update_notification_setting(self, notification_type, service,
-                                    dont_notify):
-        """
-        Updates the user's notification settings.
-        """
-        return self._get('update_notification_setting',
-                         params={'token': self.token,
-                                 'notification_type': notification_type,
-                                 'service': service,
-                                 'dont_notify': dont_notify})
-
-    def get_all_completed_items(self, **kwargs):
-        """
-        Returns all user's completed items.
-        """
-        params = {'token': self.token}
-        params.update(kwargs)
-        return self._get('get_all_completed_items', params=params)
 
     def sync(self, commands=None, **kwargs):
         """
@@ -396,6 +293,113 @@ class TodoistAPI(object):
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
         return ret['SyncStatus']
+
+    # Authentication
+    def login(self, email, password):
+        """
+        Logins user, and returns the response received by the server.
+        """
+        data = self._get('login', params={'email': email,
+                                          'password': password})
+        if 'token' in data:
+            self.token = data['token']
+        return data
+
+    def login_with_google(self, email, oauth2_token, **kwargs):
+        """
+        Logins user with Google account, and returns the response received by
+        the server.
+
+        """
+        params = {'email': email, 'oauth2_token': oauth2_token}
+        params.update(kwargs)
+        data = self._get('login_with_google', params=params)
+        if 'token' in data:
+            self.token = data['token']
+        return data
+
+    # User
+    def register(self, email, full_name, password, **kwargs):
+        """
+        Registers a new user.
+        """
+        params = {'email': email, 'full_name': full_name, 'password': password}
+        params.update(kwargs)
+        data = self._get('register', params=params)
+        if 'token' in data:
+            self.token = data['token']
+        return data
+
+    def delete_user(self, current_password, **kwargs):
+        """
+        Deletes an existing user.
+        """
+        params = {'token': self.token,
+                  'current_password': current_password}
+        params.update(kwargs)
+        return self._get('delete_user', params=params)
+
+    # Miscellaneous
+    def upload_file(self, filename, **kwargs):
+        """
+        Uploads a file.
+        """
+        params = {'token': self.token}
+        params.update(kwargs)
+        files = {'file': open(filename, 'rb')}
+        return self._post('upload_file', self.api_url, params=params,
+                          files=files)
+
+    def query(self, queries, **kwargs):
+        """
+        Performs date queries and other searches, and returns the results.
+        """
+        params = {'queries': json.dumps(queries), 'token': self.token}
+        params.update(kwargs)
+        return self._get('query', params=params)
+
+    def get_redirect_link(self, **kwargs):
+        """
+        Returns the absolute URL to redirect or to open in a browser.
+        """
+        params = {'token': self.token}
+        params.update(kwargs)
+        return self._get('get_redirect_link', params=params)
+
+    def get_productivity_stats(self):
+        """
+        Returns the user's recent productivity stats.
+        """
+        return self._get('get_productivity_stats',
+                         params={'token': self.token})
+
+    def update_notification_setting(self, notification_type, service,
+                                    dont_notify):
+        """
+        Updates the user's notification settings.
+        """
+        return self._get('update_notification_setting',
+                         params={'token': self.token,
+                                 'notification_type': notification_type,
+                                 'service': service,
+                                 'dont_notify': dont_notify})
+
+    def get_all_completed_items(self, **kwargs):
+        """
+        Returns all user's completed items.
+        """
+        params = {'token': self.token}
+        params.update(kwargs)
+        return self._get('get_all_completed_items', params=params)
+
+    def add_item(self, content, **kwargs):
+        """
+        Adds a new task.
+        """
+        params = {'token': self.token,
+                  'content': content}
+        params.update(kwargs)
+        return self._get('add_item', params=params)
 
     # Sharing
     def share_project(self, project_id, email, message='', **kwargs):
@@ -511,6 +515,7 @@ class TodoistAPI(object):
                   'reminder_id': reminder_id}
         return self._get('get_reminder', params=params)
 
+    # Class
     def __repr__(self):
         name = self.__class__.__name__
         unsaved = '*' if len(self.queue) > 0 else ''
