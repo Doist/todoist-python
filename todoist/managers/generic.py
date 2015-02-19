@@ -35,9 +35,6 @@ class GetByIdMixin(object):
                 return obj
 
         if not only_local:
-            obj = eval('self.api.get_' + self.object_type)(obj_id)
-            if self.object_type in obj and \
-               'error' not in obj[self.object_type]:
-                return obj[self.object_type]
+            return eval('self.api.get_' + self.object_type)(obj_id)
 
         return None
