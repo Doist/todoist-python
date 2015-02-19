@@ -295,7 +295,9 @@ class TodoistAPI(object):
             for temp_id, new_id in ret['TempIdMapping'].items():
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
-        return ret['SyncStatus']
+        if 'SyncStatus' in ret:
+            return ret['SyncStatus']
+        return ret
 
     # Authentication
     def login(self, email, password):
