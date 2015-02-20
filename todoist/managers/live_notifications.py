@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-from .generic import Manager, AllMixin
+from .generic import Manager, AllMixin, SyncMixin
 
 
-class LiveNotificationsManager(Manager, AllMixin):
+class LiveNotificationsManager(Manager, AllMixin, SyncMixin):
 
     state_name = 'LiveNotifications'
+    object_type = 'live_notification'
+    resource_type = 'live_notifications'
 
     def get_by_key(self, notification_key):
         """

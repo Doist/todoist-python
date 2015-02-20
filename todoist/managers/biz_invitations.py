@@ -4,8 +4,9 @@ from .generic import Manager
 
 class BizInvitationsManager(Manager):
 
-    # there is no local state associated with the manager
-    state_name = None
+    state_name = None  # there is no local state associated
+    object_type = None  # there is no object type associated
+    resource_type = None  # there is no resource type associated
 
     def accept(self, invitation_id, invitation_secret):
         """

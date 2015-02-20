@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from .generic import Manager
+from .generic import Manager, SyncMixin
 
 
-class InvitationsManager(Manager):
+class InvitationsManager(Manager, SyncMixin):
 
-    # there is no local state associated with the manager
-    state_name = None
+    state_name = None  # there is no local state associated
+    object_type = 'share_invitation'
+    resource_type = None  # there is no resource type associated
 
     def accept(self, invitation_id, invitation_secret):
         """

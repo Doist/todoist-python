@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin
+from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 
-class FiltersManager(Manager, AllMixin, GetByIdMixin):
+class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Filters'
     object_type = 'filter'
+    resource_type = 'filters'
 
     def add(self, name, query, **kwargs):
         """

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin
+from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 
-class NotesManager(Manager, AllMixin, GetByIdMixin):
+class NotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Notes'
     object_type = 'note'
+    resource_type = 'notes'
 
     def add(self, item_id, content, **kwargs):
         """

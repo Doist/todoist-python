@@ -4,9 +4,6 @@ from .generic import Manager
 
 class UserManager(Manager):
 
-    def refresh(self):
-        return self.api.sync(resource_types=[])
-
     def update(self, **kwargs):
         """
         Updates the user data, and appends the equivalent request to the queue.
@@ -18,6 +15,9 @@ class UserManager(Manager):
             'args': kwargs,
         }
         self.queue.append(item)
+
+    def sync(self):
+        return self.api.sync(resource_types=[])
 
     def get(self):
         return self.state['User']

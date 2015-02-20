@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin
+from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 
-class LabelsManager(Manager, AllMixin, GetByIdMixin):
+class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Labels'
     object_type = 'label'
+    resource_type = 'labels'
 
     def register(self, name, **kwargs):
         """

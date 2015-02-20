@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin
+from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 
-class ItemsManager(Manager, AllMixin, GetByIdMixin):
+class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Items'
     object_type = 'item'
+    resource_type = 'items'
 
     def add(self, content, project_id, **kwargs):
         """

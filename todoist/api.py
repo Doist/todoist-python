@@ -14,6 +14,8 @@ from todoist.managers.items import ItemsManager
 from todoist.managers.labels import LabelsManager
 from todoist.managers.reminders import RemindersManager
 from todoist.managers.user import UserManager
+from todoist.managers.collaborators import CollaboratorsManager
+from todoist.managers.collaborator_states import CollaboratorStatesManager
 
 
 class TodoistAPI(object):
@@ -74,6 +76,8 @@ class TodoistAPI(object):
         self.invitations = InvitationsManager(self)
         self.biz_invitations = BizInvitationsManager(self)
         self.user = UserManager(self)
+        self.collaborators = CollaboratorsManager(self)
+        self.collaborator_states = CollaboratorStatesManager(self)
 
     def __getitem__(self, key):
         return self.state[key]
@@ -150,10 +154,10 @@ class TodoistAPI(object):
         returned, and if not, then None is returned.
         """
         if objtype == 'Collaborators':
-            return self.collaborators_get_by_id(obj['id'])
+            return self.collaborators.get_by_id(obj['id'])
         elif objtype == 'CollaboratorStates':
-            return self.collaborator_state_get_by_ids(obj['project_id'],
-                                                      obj['user_id'])
+            return self.collaborator_states.get_by_ids(obj['project_id'],
+                                                       obj['user_id'])
         elif objtype == 'Filters':
             return self.filters.get_by_id(obj['id'], only_local=True)
         elif objtype == 'Items':
@@ -191,14 +195,14 @@ class TodoistAPI(object):
         Updates the seq_no and the seq_no_partial, based on the seq_no in
         the response and the resource_types that were requested.
         """
-        if not seq_no:
-            return
-        if resource_types and seq_no > self.seq_no:
-            for resource in resource_types:
-                self.seq_no_partial[resource] = seq_no
-        else:
+        if not seq_no or not resource_types:
+            pass
+        elif 'all' in resource_types:
             self.seq_no = seq_no
             self.seq_no_partial = {}
+        elif resource_types and seq_no > self.seq_no:
+            for resource in resource_types:
+                self.seq_no_partial[resource] = seq_no
 
     def _replace_temp_id(self, temp_id, new_id):
         """
@@ -451,25 +455,6 @@ class TodoistAPI(object):
             },
         }
         self.queue.append(item)
-
-    def collaborators_get_by_id(self, user_id):
-        """
-        Finds and returns the collaborator based on the user id.
-        """
-        for obj in self.state['Collaborators']:
-            if obj['id'] == user_id:
-                return obj
-        return None
-
-    def collaborator_state_get_by_ids(self, project_id, user_id):
-        """
-        Finds and returns the collaborator state based on the project and user
-        id.
-        """
-        for obj in self.state['CollaboratorStates']:
-            if obj['project_id'] == project_id and obj['user_id'] == user_id:
-                return obj
-        return None
 
     # Auxiliary
     def get_project(self, project_id):

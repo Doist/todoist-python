@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin
+from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 
-class RemindersManager(Manager, AllMixin, GetByIdMixin):
+class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Reminders'
     object_type = 'reminder'
+    resource_type = 'reminders'
 
     def add(self, item_id, **kwargs):
         """
