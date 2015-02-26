@@ -467,7 +467,8 @@ class TodoistAPI(object):
         obj = data.get('project', None)
         if obj and 'error' not in obj:
             self._update_state({'Projects': [obj]})
-            return obj
+            return [o for o in self.state['Projects']
+                    if o['id'] == obj['id']][0]
         return None
 
     def get_item(self, item_id):
@@ -480,7 +481,7 @@ class TodoistAPI(object):
         obj = data.get('item', None)
         if obj and 'error' not in obj:
             self._update_state({'Items': [obj]})
-            return obj
+            return [o for o in self.state['Items'] if o['id'] == obj['id']][0]
         return None
 
     def get_label(self, label_id):
@@ -493,7 +494,7 @@ class TodoistAPI(object):
         obj = data.get('label', None)
         if obj and 'error' not in obj:
             self._update_state({'Labels': [obj]})
-            return obj
+            return [o for o in self.state['Labels'] if o['id'] == obj['id']][0]
         return None
 
     def get_note(self, note_id):
@@ -506,7 +507,7 @@ class TodoistAPI(object):
         obj = data.get('note', None)
         if obj and 'error' not in obj:
             self._update_state({'Notes': [obj]})
-            return obj
+            return [o for o in self.state['Notes'] if o['id'] == obj['id']][0]
         return None
 
     def get_filter(self, filter_id):
@@ -519,7 +520,8 @@ class TodoistAPI(object):
         obj = data.get('filter', None)
         if obj and 'error' not in obj:
             self._update_state({'Filters': [obj]})
-            return obj
+            return [o for o in self.state['Filters']
+                    if o['id'] == obj['id']][0]
         return None
 
     def get_reminder(self, reminder_id):
@@ -532,7 +534,8 @@ class TodoistAPI(object):
         obj = data.get('reminder', None)
         if obj and 'error' not in obj:
             self._update_state({'Reminders': [obj]})
-            return obj
+            return [o for o in self.state['Reminders']
+                    if o['id'] == obj['id']][0]
         return None
 
     # Class
