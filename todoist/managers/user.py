@@ -17,7 +17,7 @@ class UserManager(Manager):
         self.queue.append(item)
 
     def sync(self):
-        return self.api.sync(resource_types=[])
+        return self.api.sync(resource_types=['user'])
 
     def get(self):
         return self.state['User']

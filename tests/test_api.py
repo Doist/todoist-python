@@ -6,7 +6,7 @@ import todoist
 def cleanup(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_url = 'https://local.todoist.com/API/v6/'
-    api.sync()
+    api.sync(resource_types=['all'])
     for filter in api.state['Filters']:
         filter.delete()
     api.commit()
@@ -20,6 +20,11 @@ def cleanup(api_token):
         note.delete()
     api.commit()
     for item in api.state['Items']:
+        item.delete()
+    api.commit()
+    for completed in api.get_all_completed_items()['items']:
+        item = api.items.get_by_id(completed['id'])
+        item.uncomplete()
         item.delete()
     api.commit()
     for project in api.state['Projects']:
@@ -539,7 +544,7 @@ def test_share(api_token, api_token2):
     api.commit()
     api.projects.sync()
 
-    api2.sync()
+    api2.user.sync()
     api.share_project(project1['id'], api2['User']['email'])
     api.commit()
     response = api.projects.sync()
@@ -547,6 +552,7 @@ def test_share(api_token, api_token2):
     assert response['Projects'][0]['shared']
 
     response2 = api2.live_notifications.sync()
+    api.user.sync()
     assert response2['LiveNotifications'][0]['project_name'] == \
         project1['name']
     assert response2['LiveNotifications'][0]['from_user']['email'] == \
