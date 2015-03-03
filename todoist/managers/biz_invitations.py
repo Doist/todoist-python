@@ -15,7 +15,7 @@ class BizInvitationsManager(Manager):
         """
         item = {
             'type': 'biz_accept_invitation',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'invitation_id': invitation_id,
                 'invitation_secret': invitation_secret,
@@ -30,7 +30,7 @@ class BizInvitationsManager(Manager):
         """
         item = {
             'type': 'biz_reject_invitation',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'invitation_id': invitation_id,
                 'invitation_secret': invitation_secret,

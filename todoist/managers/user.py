@@ -11,7 +11,7 @@ class UserManager(Manager):
         self.state['User'].update(kwargs)
         item = {
             'type': 'user_update',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': kwargs,
         }
         self.queue.append(item)

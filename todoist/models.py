@@ -34,7 +34,7 @@ class Filter(Model):
         args.update(kwargs)
         item = {
             'type': 'filter_update',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -46,7 +46,7 @@ class Filter(Model):
         """
         item = {
             'type': 'filter_delete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id'],
             },
@@ -68,7 +68,7 @@ class Item(Model):
         args.update(kwargs)
         item = {
             'type': 'item_update',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -80,7 +80,7 @@ class Item(Model):
         """
         item = {
             'type': 'item_delete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'ids': [self['id']],
             },
@@ -95,7 +95,7 @@ class Item(Model):
         """
         item = {
             'type': 'item_move',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'project_items': {
                     self.data['project_id']: [self['id']],
@@ -113,7 +113,7 @@ class Item(Model):
         """
         item = {
             'type': 'item_complete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'project_id': self['project_id'],
                 'ids': [self['id']],
@@ -131,7 +131,7 @@ class Item(Model):
         """
         item = {
             'type': 'item_uncomplete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'project_id': self['project_id'],
                 'ids': [self['id']],
@@ -155,7 +155,7 @@ class Label(Model):
         args.update(kwargs)
         item = {
             'type': 'label_update',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -167,7 +167,7 @@ class Label(Model):
         """
         item = {
             'type': 'label_delete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id'],
             },
@@ -199,7 +199,7 @@ class GenericNote(Model):
         args.update(kwargs)
         item = {
             'type': 'note_update',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -211,7 +211,7 @@ class GenericNote(Model):
         """
         item = {
             'type': 'note_delete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id'],
             },
@@ -241,7 +241,7 @@ class Project(Model):
         args.update(kwargs)
         item = {
             'type': 'project_update',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -253,7 +253,7 @@ class Project(Model):
         """
         item = {
             'type': 'project_delete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'ids': [self['id']],
             },
@@ -268,7 +268,7 @@ class Project(Model):
         """
         item = {
             'type': 'project_archive',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id']
             },
@@ -283,7 +283,7 @@ class Project(Model):
         """
         item = {
             'type': 'project_unarchive',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id']
             },
@@ -304,7 +304,7 @@ class Reminder(Model):
         args.update(kwargs)
         item = {
             'type': 'reminder_update',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': args,
         }
         self.api.queue.append(item)
@@ -316,7 +316,7 @@ class Reminder(Model):
         """
         item = {
             'type': 'reminder_delete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id'],
             },

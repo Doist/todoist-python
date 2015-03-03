@@ -15,14 +15,13 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         to the queue.
         """
         obj = models.Project({'name': name}, self.api)
-        ts = self.api.generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
+        obj.temp_id = obj['id'] = '$' + self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
         item = {
             'type': 'project_add',
             'temp_id': obj.temp_id,
-            'timestamp': ts,
+            'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
         self.queue.append(item)
@@ -40,7 +39,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
                 obj['indent'] = ids_to_orders_indents[project_id][1]
         item = {
             'type': 'project_update_orders_indents',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'ids_to_orders_indents': ids_to_orders_indents,
             },

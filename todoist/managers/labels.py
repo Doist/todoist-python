@@ -15,14 +15,13 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         request to the queue.
         """
         obj = models.Label({'name': name}, self.api)
-        ts = self.api.generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
+        obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
         item = {
             'type': 'label_register',
             'temp_id': obj.temp_id,
-            'timestamp': ts,
+            'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
         self.queue.append(item)

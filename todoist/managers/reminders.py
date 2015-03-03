@@ -15,14 +15,13 @@ class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         to the queue.
         """
         obj = models.Reminder({'item_id': item_id}, self.api)
-        ts = self.api.generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
+        obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
         item = {
             'type': 'reminder_add',
             'temp_id': obj.temp_id,
-            'timestamp': ts,
+            'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
         self.queue.append(item)

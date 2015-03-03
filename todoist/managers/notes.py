@@ -15,14 +15,13 @@ class NotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         the queue.
         """
         obj = models.Note({'item_id': item_id, 'content': content}, self.api)
-        ts = self.api.generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
+        obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
         item = {
             'type': 'note_add',
             'temp_id': obj.temp_id,
-            'timestamp': ts,
+            'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
         self.queue.append(item)

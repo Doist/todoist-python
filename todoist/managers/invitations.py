@@ -15,7 +15,7 @@ class InvitationsManager(Manager, SyncMixin):
         """
         item = {
             'type': 'accept_invitation',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'invitation_id': invitation_id,
                 'invitation_secret': invitation_secret,
@@ -30,7 +30,7 @@ class InvitationsManager(Manager, SyncMixin):
         """
         item = {
             'type': 'reject_invitation',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'invitation_id': invitation_id,
                 'invitation_secret': invitation_secret,
@@ -45,7 +45,7 @@ class InvitationsManager(Manager, SyncMixin):
         """
         item = {
             'type': 'delete_invitation',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'invitation_id': invitation_id,
             },

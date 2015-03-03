@@ -7,19 +7,19 @@ def cleanup(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_url = 'https://local.todoist.com/API/v6/'
     api.sync(resource_types=['all'])
-    for filter in api.state['Filters']:
+    for filter in api.state['Filters'][:]:
         filter.delete()
     api.commit()
-    for label in api.state['Labels']:
+    for label in api.state['Labels'][:]:
         label.delete()
     api.commit()
-    for reminder in api.state['Reminders']:
+    for reminder in api.state['Reminders'][:]:
         reminder.delete()
     api.commit()
-    for note in api.state['Notes']:
+    for note in api.state['Notes'][:]:
         note.delete()
     api.commit()
-    for item in api.state['Items']:
+    for item in api.state['Items'][:]:
         item.delete()
     api.commit()
     for completed in api.get_all_completed_items()['items']:
@@ -27,7 +27,7 @@ def cleanup(api_token):
         item.uncomplete()
         item.delete()
     api.commit()
-    for project in api.state['Projects']:
+    for project in api.state['Projects'][:]:
         if project['name'] != 'Inbox':
             project.delete()
     api.commit()

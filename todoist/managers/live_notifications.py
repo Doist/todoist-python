@@ -25,7 +25,7 @@ class LiveNotificationsManager(Manager, AllMixin, SyncMixin):
         self.state[self.state_name] = seq_no
         item = {
             'type': 'live_notifications_mark_as_read',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'seq_no': seq_no,
             },

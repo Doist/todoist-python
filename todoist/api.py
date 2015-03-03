@@ -1,4 +1,4 @@
-import time
+import uuid
 import json
 import requests
 
@@ -24,7 +24,7 @@ class TodoistAPI(object):
     account and its data.
     """
     _serialize_fields = ('token', 'api_url', 'seq_no', 'seq_no_partial',
-                         'state', 'temp_ids', 'timestamp', 'timestamp_suffix')
+                         'state', 'temp_ids')
 
     @classmethod
     def deserialize(cls, data):
@@ -61,8 +61,6 @@ class TodoistAPI(object):
         self.token = token  # User's API token
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
-        self.timestamp = -1
-        self.timestamp_suffix = -1
 
         # managers
         self.projects = ProjectsManager(self)
@@ -247,17 +245,11 @@ class TodoistAPI(object):
             return response.text
 
     # Sync
-    def generate_timestamp(self):
+    def generate_uuid(self):
         """
-        Generates a timestamp, which is based on the current unix time.
+        Generates a uuid.
         """
-        now = int(time.time())
-        if now != self.timestamp:
-            self.timestamp = now
-            self.timestamp_suffix = 1
-        else:
-            self.timestamp_suffix += 1
-        return str(self.timestamp) + '.' + str(self.timestamp_suffix)
+        return str(uuid.uuid1())
 
     def sync(self, commands=None, **kwargs):
         """
@@ -415,11 +407,10 @@ class TodoistAPI(object):
         """
         Appends a request to the queue, to share a project with a user.
         """
-        ts = self.generate_timestamp()
         item = {
             'type': 'share_project',
-            'temp_id': '$' + ts,
-            'timestamp': ts,
+            'temp_id': self.generate_uuid(),
+            'uuid': self.generate_uuid(),
             'args': {
                 'project_id': project_id,
                 'email': email,
@@ -435,7 +426,7 @@ class TodoistAPI(object):
         """
         item = {
             'type': 'delete_collaborator',
-            'timestamp': self.generate_timestamp(),
+            'uuid': self.generate_uuid(),
             'args': {
                 'project_id': project_id,
                 'email': email,
@@ -449,7 +440,7 @@ class TodoistAPI(object):
         """
         item = {
             'type': 'take_ownership',
-            'timestamp': self.generate_timestamp(),
+            'uuid': self.generate_uuid(),
             'args': {
                 'project_id': project_id,
             },

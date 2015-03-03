@@ -16,14 +16,13 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         """
         obj = models.Item({'content': content, 'project_id': project_id},
                           self.api)
-        ts = self.api.generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
+        obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
         item = {
             'type': 'item_add',
             'temp_id': obj.temp_id,
-            'timestamp': ts,
+            'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
         self.queue.append(item)
@@ -42,7 +41,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
                 obj['item_order'] = ids_to_metas[item_id][2]
         item = {
             'type': 'item_uncomplete_update_meta',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'project_id': project_id,
                 'ids_to_metas': ids_to_metas,
@@ -63,7 +62,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             obj['is_forward'] = is_forward
         item = {
             'type': 'item_update_date_complete',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'id': item_id,
                 'new_date_utc': new_date_utc,
@@ -85,7 +84,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
                 obj['indent'] = ids_to_orders_indents[item_id][1]
         item = {
             'type': 'item_update_orders_indents',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'ids_to_orders_indents': ids_to_orders_indents,
             },
@@ -103,7 +102,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
                 obj['day_order'] = ids_to_orders[item_id]
         item = {
             'type': 'item_update_day_orders',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'ids_to_orders': ids_to_orders,
             },

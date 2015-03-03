@@ -15,14 +15,13 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         the queue.
         """
         obj = models.Filter({'name': name, 'query': query}, self.api)
-        ts = self.api.generate_timestamp()
-        obj.temp_id = obj['id'] = '$' + ts
+        obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
         item = {
             'type': 'filter_add',
             'temp_id': obj.temp_id,
-            'timestamp': ts,
+            'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
         self.queue.append(item)
@@ -39,7 +38,7 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
                 obj['item_order'] = id_order_mapping[filter_id]
         item = {
             'type': 'filter_update_orders',
-            'timestamp': self.api.generate_timestamp(),
+            'uuid': self.api.generate_uuid(),
             'args': {
                 'id_order_mapping': id_order_mapping,
             },
