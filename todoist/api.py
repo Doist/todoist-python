@@ -23,7 +23,7 @@ class TodoistAPI(object):
     Implements the API that makes it possible to interact with a Todoist user
     account and its data.
     """
-    _serialize_fields = ('token', 'api_url', 'seq_no', 'seq_no_partial',
+    _serialize_fields = ('token', 'api_endpoint', 'seq_no', 'seq_no_partial',
                          'state', 'temp_ids')
 
     @classmethod
@@ -35,7 +35,7 @@ class TodoistAPI(object):
         return obj
 
     def __init__(self, token='', api_endpoint='https://api.todoist.com'):
-        self.api_url = '%s/API/v6/' % api_endpoint  # Todoist API
+        self.api_endpoint = api_endpoint
         self.seq_no = 0  # Sequence number since last update
         self.seq_no_partial = {}  # Sequence number of partial syncs
         self.state = {  # Local copy of all of the user's objects
@@ -82,6 +82,9 @@ class TodoistAPI(object):
 
     def serialize(self):
         return {key: getattr(self, key) for key in self._serialize_fields}
+
+    def get_api_url(self):
+        return '%s/API/v6/' % self.api_endpoint
 
     def _update_state(self, syncdata):
         """
@@ -224,7 +227,7 @@ class TodoistAPI(object):
         object received (if any), or whatever answer it got otherwise.
         """
         if not url:
-            url = self.api_url
+            url = self.get_api_url()
         response = requests.get(url + call, **kwargs)
         try:
             return response.json()
@@ -237,7 +240,7 @@ class TodoistAPI(object):
         object received (if any), or whatever answer it got otherwise.
         """
         if not url:
-            url = self.api_url
+            url = self.get_api_url()
         response = requests.post(url + call, **kwargs)
         try:
             return response.json()
@@ -348,7 +351,7 @@ class TodoistAPI(object):
         params = {'token': self.token}
         params.update(kwargs)
         files = {'file': open(filename, 'rb')}
-        return self._post('upload_file', self.api_url, params=params,
+        return self._post('upload_file', self.get_api_url(), params=params,
                           files=files)
 
     def query(self, queries, **kwargs):
