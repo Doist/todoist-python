@@ -16,6 +16,17 @@ class UserManager(Manager):
         }
         self.queue.append(item)
 
+    def update_goals(self, **kwargs):
+        """
+        Update the user's karma goals.
+        """
+        item = {
+            'type': 'update_goals',
+            'uuid': self.api.generate_uuid(),
+            'args': kwargs,
+        }
+        self.queue.append(item)
+
     def sync(self):
         return self.api.sync(resource_types=['user'])
 

@@ -167,6 +167,10 @@ def test_user(api_token):
     api.seq_no = 0
     api.user.sync()
     assert date_format_new == api.state['User']['date_format']
+    api.user.update_goals(vacation_mode=1)
+    api.commit()
+    api.user.update_goals(vacation_mode=0)
+    api.commit()
 
 
 def test_project(api_token):
