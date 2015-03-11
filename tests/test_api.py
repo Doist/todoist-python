@@ -521,6 +521,17 @@ def test_reminder(api_token):
     api.commit()
 
 
+def test_locations(api_token):
+    api = todoist.api.TodoistAPI(api_token)
+    api.api_endpoint = 'https://local.todoist.com'
+
+    api.locations.sync()
+    api.locations.clear()
+    api.commit()
+    api.locations.sync()
+    assert api.state['Locations'] == []
+
+
 def test_live_notifications(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_endpoint = 'https://local.todoist.com'

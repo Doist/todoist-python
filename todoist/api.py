@@ -13,6 +13,7 @@ from todoist.managers.project_notes import ProjectNotesManager
 from todoist.managers.items import ItemsManager
 from todoist.managers.labels import LabelsManager
 from todoist.managers.reminders import RemindersManager
+from todoist.managers.locations import LocationsManager
 from todoist.managers.user import UserManager
 from todoist.managers.collaborators import CollaboratorsManager
 from todoist.managers.collaborator_states import CollaboratorStatesManager
@@ -48,6 +49,7 @@ class TodoistAPI(object):
             'Labels': [],
             'LiveNotifications': [],
             'LiveNotificationsLastRead': -1,
+            'Locations': [],
             'Notes': [],
             'ProjectNotes': [],
             'Projects': [],
@@ -71,6 +73,7 @@ class TodoistAPI(object):
         self.notes = NotesManager(self)
         self.live_notifications = LiveNotificationsManager(self)
         self.reminders = RemindersManager(self)
+        self.locations = LocationsManager(self)
         self.invitations = InvitationsManager(self)
         self.biz_invitations = BizInvitationsManager(self)
         self.user = UserManager(self)
@@ -105,6 +108,8 @@ class TodoistAPI(object):
         if 'LiveNotificationsLastRead' in syncdata:
             self.state['LiveNotificationsLastRead'] = \
                 syncdata['LiveNotificationsLastRead']
+        if 'Locations' in syncdata:
+            self.state['Locations'] = syncdata['Locations']
         if 'Settings' in syncdata:
             self.state['Settings'].update(syncdata['Settings'])
         if 'SettingsNotifications' in syncdata:
