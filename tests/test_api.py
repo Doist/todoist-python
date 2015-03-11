@@ -47,22 +47,6 @@ def test_login(user_email, user_password, api_token):
     assert response['User']['token'] == api_token
 
 
-def test_register():
-    api = todoist.api.TodoistAPI()
-    api.api_endpoint = 'https://local.todoist.com'
-    now = str(int(time.time()))
-    email = 'user' + now + '@example.org'
-    full_name = 'User' + now
-    password = 'pass' + now
-    response = api.register(email, full_name, password)
-    assert 'email' in response
-    assert 'full_name' in response
-    assert response['email'] == email
-    assert response['full_name'] == full_name
-    response = api.delete_user(password, in_background=0)
-    assert response == 'ok'
-
-
 def test_link(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_endpoint = 'https://local.todoist.com'

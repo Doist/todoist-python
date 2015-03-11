@@ -339,15 +339,6 @@ class TodoistAPI(object):
             self.token = data['token']
         return data
 
-    def delete_user(self, current_password, **kwargs):
-        """
-        Deletes an existing user.
-        """
-        params = {'token': self.token,
-                  'current_password': current_password}
-        params.update(kwargs)
-        return self._get('delete_user', params=params)
-
     # Miscellaneous
     def upload_file(self, filename, **kwargs):
         """
