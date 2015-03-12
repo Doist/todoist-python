@@ -188,13 +188,18 @@ class TodoistAPI(object):
         Calculates what is the seq_no that should be sent, based on the last
         seq_no and the resource_types that are requested.
         """
-        seq_no = self.seq_no
+        seq_no = -1
         if resource_types:
             for resource in resource_types:
-                if resource in self.seq_no_partial:
-                    if seq_no == 0 or self.seq_no_partial[resource] < seq_no:
+                if resource not in self.seq_no_partial:
+                    seq_no = self.seq_no
+                else:
+                    if seq_no == -1 or self.seq_no_partial[resource] < seq_no:
                         seq_no = self.seq_no_partial[resource]
-        return seq_no
+        if seq_no == -1:
+            return self.seq_no
+        else:
+            return seq_no
 
     def _update_seq_no(self, seq_no, resource_types):
         """
