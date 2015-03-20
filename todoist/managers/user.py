@@ -30,8 +30,11 @@ class UserManager(Manager):
     def sync(self):
         return self.api.sync(resource_types=['user'])
 
-    def get(self):
-        return self.state['User']
+    def get(self, key=None, default=None):
+        ret = self.state['User']
+        if key is not None:
+            ret = ret.get(key, default)
+        return ret
 
     def get_id(self):
         return self.state['UserId']
