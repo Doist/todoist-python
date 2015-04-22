@@ -334,7 +334,7 @@ def test_label(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_endpoint = 'https://local.todoist.com'
 
-    label1 = api.labels.register('Label1')
+    label1 = api.labels.add('Label1')
     api.commit()
     response = api.labels.sync()
     assert response['Labels'][0]['name'] == 'Label1'
@@ -348,12 +348,28 @@ def test_label(api_token):
     assert 'UpdatedLabel1' in [p['name'] for p in api.state['Labels']]
     assert api.labels.get_by_id(label1['id']) == label1
 
+    label2 = api.labels.add('Label2')
+    api.commit()
+    api.labels.sync()
+
+    api.labels.update_orders({label1['id']: 1, label2['id']: 2})
+    api.commit()
+    response = api.labels.sync()
+    for label in response['Labels']:
+        if label['id'] == label1['id']:
+            assert label['item_order'] == 1
+        if label['id'] == label2['id']:
+            assert label['item_order'] == 2
+
     label1.delete()
     api.commit()
     response = api.labels.sync()
     assert response['Labels'][0]['name'] == 'UpdatedLabel1'
     assert response['Labels'][0]['is_deleted'] == 1
     assert 'UpdatedLabel1' not in [p['name'] for p in api.state['Labels']]
+
+    label2.delete()
+    api.commit()
 
 
 def test_note(api_token):
