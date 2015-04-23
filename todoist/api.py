@@ -25,7 +25,8 @@ class TodoistAPI(object):
     account and its data.
     """
     _serialize_fields = ('token', 'api_endpoint', 'seq_no', 'seq_no_partial',
-                         'state', 'temp_ids')
+                         'seq_no_global', 'seq_no_global_partial', 'state',
+                         'temp_ids')
 
     @classmethod
     def deserialize(cls, data):
@@ -39,6 +40,8 @@ class TodoistAPI(object):
         self.api_endpoint = api_endpoint
         self.seq_no = 0  # Sequence number since last update
         self.seq_no_partial = {}  # Sequence number of partial syncs
+        self.seq_no_global = 0  # Global sequence number since last update
+        self.seq_no_global_partial = {}  # Global sequence number of partial syncs
         self.state = {  # Local copy of all of the user's objects
             'CollaboratorStates': [],
             'Collaborators': [],
@@ -189,6 +192,8 @@ class TodoistAPI(object):
         seq_no and the resource_types that are requested.
         """
         seq_no = -1
+        seq_no_global = -1
+
         if resource_types:
             for resource in resource_types:
                 if resource not in self.seq_no_partial:
@@ -196,24 +201,43 @@ class TodoistAPI(object):
                 else:
                     if seq_no == -1 or self.seq_no_partial[resource] < seq_no:
                         seq_no = self.seq_no_partial[resource]
-        if seq_no == -1:
-            return self.seq_no
-        else:
-            return seq_no
 
-    def _update_seq_no(self, seq_no, resource_types):
+                if resource not in self.seq_no_global_partial:
+                    seq_no_global = self.seq_no_global
+                else:
+                    if seq_no_global == -1 or \
+                       self.seq_no_global_partial[resource] < seq_no_global:
+                        seq_no_global = self.seq_no_global_partial[resource]
+
+        if seq_no == -1:
+            seq_no = self.seq_no
+        if seq_no_global == -1:
+            seq_no_global = self.seq_no_global
+
+        return seq_no, seq_no_global
+
+    def _update_seq_no(self, seq_no, seq_no_global, resource_types):
         """
         Updates the seq_no and the seq_no_partial, based on the seq_no in
         the response and the resource_types that were requested.
         """
-        if not seq_no or not resource_types:
-            pass
-        elif 'all' in resource_types:
-            self.seq_no = seq_no
-            self.seq_no_partial = {}
-        elif resource_types and seq_no > self.seq_no:
-            for resource in resource_types:
-                self.seq_no_partial[resource] = seq_no
+        print(seq_no, seq_no_global, resource_types)
+        if not seq_no and not seq_no_global or not resource_types:
+            return
+        if 'all' in resource_types:
+            if seq_no:
+                self.seq_no = seq_no
+                self.seq_no_partial = {}
+            if seq_no_global:
+                self.seq_no_global = seq_no_global
+                self.seq_no_global_partial = {}
+        else:
+            if seq_no and seq_no > self.seq_no:
+                for resource in resource_types:
+                    self.seq_no_partial[resource] = seq_no
+            if seq_no_global and seq_no_global > self.seq_no_global:
+                for resource in resource_types:
+                    self.seq_no_global_partial[resource] = seq_no_global
 
     def _replace_temp_id(self, temp_id, new_id):
         """
@@ -275,8 +299,9 @@ class TodoistAPI(object):
             'day_orders_timestamp': self.state['DayOrdersTimestamp'],
         }
         if not commands:
-            params['seq_no'] = self._get_seq_no(kwargs.get('resource_types',
-                                                           None)),
+            params['seq_no'], params['seq_no_global'] = \
+                self._get_seq_no(kwargs.get('resource_types', None))
+
         if 'include_notification_settings' in kwargs:
             params['include_notification_settings'] = 1
         if 'resource_types' in kwargs:
@@ -285,6 +310,7 @@ class TodoistAPI(object):
         self._update_state(data)
         if not commands:
             self._update_seq_no(data.get('seq_no', None),
+                                data.get('seq_no_global', None),
                                 kwargs.get('resource_types', None))
 
         return data
