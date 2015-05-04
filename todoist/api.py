@@ -293,20 +293,21 @@ class TodoistAPI(object):
         Sends to the server the changes that were made locally, and also
         fetches the latest updated data from the server.
         """
-        params = {
+        data = {
             'token': self.token,
-            'commands': json.dumps(commands or []),
+            'commands': json.dumps(commands or [], separators=',:'),
             'day_orders_timestamp': self.state['DayOrdersTimestamp'],
         }
         if not commands:
-            params['seq_no'], params['seq_no_global'] = \
+            data['seq_no'], data['seq_no_global'] = \
                 self._get_seq_no(kwargs.get('resource_types', None))
 
         if 'include_notification_settings' in kwargs:
-            params['include_notification_settings'] = 1
+            data['include_notification_settings'] = 1
         if 'resource_types' in kwargs:
-            params['resource_types'] = json.dumps(kwargs['resource_types'])
-        data = self._post('sync', params=params)
+            data['resource_types'] = json.dumps(kwargs['resource_types'],
+                                                  separators=',:')
+        data = self._post('sync', data=data)
         self._update_state(data)
         if not commands:
             self._update_seq_no(data.get('seq_no', None),
@@ -339,8 +340,8 @@ class TodoistAPI(object):
         """
         Logins user, and returns the response received by the server.
         """
-        data = self._get('login', params={'email': email,
-                                          'password': password})
+        data = self._post('login', data={'email': email,
+                                         'password': password})
         if 'token' in data:
             self.token = data['token']
         return data
@@ -351,9 +352,9 @@ class TodoistAPI(object):
         the server.
 
         """
-        params = {'email': email, 'oauth2_token': oauth2_token}
-        params.update(kwargs)
-        data = self._get('login_with_google', params=params)
+        data = {'email': email, 'oauth2_token': oauth2_token}
+        data.update(kwargs)
+        data = self._post('login_with_google', data=data)
         if 'token' in data:
             self.token = data['token']
         return data
@@ -363,9 +364,9 @@ class TodoistAPI(object):
         """
         Registers a new user.
         """
-        params = {'email': email, 'full_name': full_name, 'password': password}
-        params.update(kwargs)
-        data = self._get('register', params=params)
+        data = {'email': email, 'full_name': full_name, 'password': password}
+        data.update(kwargs)
+        data = self._post('register', data=data)
         if 'token' in data:
             self.token = data['token']
         return data
@@ -375,17 +376,18 @@ class TodoistAPI(object):
         """
         Uploads a file.
         """
-        params = {'token': self.token}
-        params.update(kwargs)
+        data = {'token': self.token}
+        data.update(kwargs)
         files = {'file': open(filename, 'rb')}
-        return self._post('upload_file', self.get_api_url(), params=params,
+        return self._post('upload_file', self.get_api_url(), data=data,
                           files=files)
 
     def query(self, queries, **kwargs):
         """
         Performs date queries and other searches, and returns the results.
         """
-        params = {'queries': json.dumps(queries), 'token': self.token}
+        params = {'queries': json.dumps(queries, separators=',:'),
+                  'token': self.token}
         params.update(kwargs)
         return self._get('query', params=params)
 
@@ -409,11 +411,11 @@ class TodoistAPI(object):
         """
         Updates the user's notification settings.
         """
-        return self._get('update_notification_setting',
-                         params={'token': self.token,
-                                 'notification_type': notification_type,
-                                 'service': service,
-                                 'dont_notify': dont_notify})
+        return self._post('update_notification_setting',
+                          data={'token': self.token,
+                                'notification_type': notification_type,
+                                'service': service,
+                                'dont_notify': dont_notify})
 
     def get_all_completed_items(self, **kwargs):
         """
