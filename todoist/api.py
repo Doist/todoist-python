@@ -221,7 +221,6 @@ class TodoistAPI(object):
         Updates the seq_no and the seq_no_partial, based on the seq_no in
         the response and the resource_types that were requested.
         """
-        print(seq_no, seq_no_global, resource_types)
         if not seq_no and not seq_no_global or not resource_types:
             return
         if 'all' in resource_types:
