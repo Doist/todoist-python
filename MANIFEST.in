@@ -1,0 +1,5 @@
+include README.md
+recursive-include doc *
+recursive-exclude doc *.pyc
+recursive-exclude doc *.pyo
+prune doc/_build
