@@ -565,8 +565,6 @@ class TodoistAPI(object):
     def __repr__(self):
         name = self.__class__.__name__
         unsaved = '*' if len(self.queue) > 0 else ''
-        if self.seq_no == 0:
-            email = '<not synchronized>'
-        else:
-            email = repr(self.state['User']['email'])
-        return '%s%s(%s)' % (name, unsaved, email)
+        email = self.user.get('email')
+        email_repr = repr(email) if email else '<not synchronized>'
+        return '%s%s(%s)' % (name, unsaved, email_repr)
