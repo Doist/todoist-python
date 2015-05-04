@@ -22,7 +22,7 @@ class Manager(object):
 
 class AllMixin(object):
     def all(self, filt=None):
-        return filter(filt, self.state[self.state_name])
+        return list(filter(filt, self.state[self.state_name]))
 
 
 class GetByIdMixin(object):
@@ -36,7 +36,8 @@ class GetByIdMixin(object):
                 return obj
 
         if not only_local:
-            return eval('self.api.get_' + self.object_type)(obj_id)
+            getter = getattr(self.api, 'get_%s' % self.object_type)
+            return getter(obj_id)
 
         return None
 
