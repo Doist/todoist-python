@@ -305,7 +305,7 @@ class TodoistAPI(object):
             data['include_notification_settings'] = 1
         if 'resource_types' in kwargs:
             data['resource_types'] = json.dumps(kwargs['resource_types'],
-                                                  separators=',:')
+                                                separators=',:')
         data = self._post('sync', data=data)
         self._update_state(data)
         if not commands:
@@ -369,6 +369,15 @@ class TodoistAPI(object):
         if 'token' in data:
             self.token = data['token']
         return data
+
+    def delete_user(self, current_password, **kwargs):
+        """
+        Deletes an existing user.
+        """
+        params = {'token': self.token,
+                  'current_password': current_password}
+        params.update(kwargs)
+        return self._get('delete_user', params=params)
 
     # Miscellaneous
     def upload_file(self, filename, **kwargs):
