@@ -26,3 +26,37 @@ class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
         return obj
+
+    def update(self, reminder_id, **kwargs):
+        """
+        Updates reminder, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(reminder_id)
+        if obj:
+            obj.data.update(kwargs)
+
+        args = {'id': reminder_id}
+        args.update(kwargs)
+        cmd = {
+            'type': 'reminder_update',
+            'uuid': self.api.generate_uuid(),
+            'args': args,
+        }
+        self.queue.append(cmd)
+
+    def delete(self, reminder_id):
+        """
+        Deletes reminder, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(reminder_id)
+        if obj:
+            self.state[self.state_name].remove(obj)
+
+        cmd = {
+            'type': 'reminder_delete',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'id': reminder_id,
+            },
+        }
+        self.queue.append(cmd)

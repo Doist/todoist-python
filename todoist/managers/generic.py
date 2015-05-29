@@ -41,6 +41,7 @@ class GetByIdMixin(object):
 
         return None
 
+
 class SyncMixin(object):
     """
     Syncs this specific type of objects.

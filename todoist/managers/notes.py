@@ -26,3 +26,37 @@ class NotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
         return obj
+
+    def update(self, note_id, **kwargs):
+        """
+        Updates note, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(note_id)
+        if obj:
+            obj.data.update(kwargs)
+
+        args = {'id': note_id}
+        args.update(kwargs)
+        cmd = {
+            'type': 'note_update',
+            'uuid': self.api.generate_uuid(),
+            'args': args,
+        }
+        self.queue.append(cmd)
+
+    def delete(self, note_id):
+        """
+        Deletes note, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(note_id)
+        if obj:
+            self.state[self.state_name].remove(obj)
+
+        cmd = {
+            'type': 'note_delete',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'id': note_id,
+            },
+        }
+        self.queue.append(cmd)

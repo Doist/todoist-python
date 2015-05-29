@@ -52,7 +52,6 @@ class Filter(Model):
             },
         }
         self.api.queue.append(cmd)
-        self.data['is_deleted'] = 1
         self.api.state['Filters'].remove(self)
 
 
@@ -106,7 +105,7 @@ class Item(Model):
         self.api.queue.append(cmd)
         self.data['project_id'] = to_project
 
-    def complete(self, force_history=0, **kwargs):
+    def complete(self, force_history=0):
         """
         Marks item as completed, and appends the equivalent request to the
         queue.
@@ -124,7 +123,7 @@ class Item(Model):
         self.data['checked'] = 1
         self.data['in_history'] = force_history
 
-    def uncomplete(self, update_item_orders=1, **kwargs):
+    def uncomplete(self, update_item_orders=1):
         """
         Marks item as not completed, and appends the equivalent request to the
         queue.
@@ -141,6 +140,26 @@ class Item(Model):
         self.api.queue.append(cmd)
         self.data['checked'] = 0
         self.data['in_history'] = 0
+
+    def update_date_complete(self, new_date_utc, date_string, is_forward):
+        """
+        Completes a recurring task, and appends the equivalent request to the
+        queue.
+        """
+        cmd = {
+            'type': 'item_update_date_complete',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'id': self['id'],
+                'new_date_utc': new_date_utc,
+                'date_string': date_string,
+                'is_forward': is_forward,
+            },
+        }
+        self.api.queue.append(cmd)
+        self.data['new_date_utc'] = new_date_utc
+        self.data['date_string'] = date_string
+        self.data['is_forward'] = is_forward
 
 
 class Label(Model):
@@ -173,7 +192,6 @@ class Label(Model):
             },
         }
         self.api.queue.append(cmd)
-        self.data['is_deleted'] = 1
         self.api.state['Labels'].remove(self)
 
 
@@ -217,7 +235,6 @@ class GenericNote(Model):
             },
         }
         self.api.queue.append(cmd)
-        self.data['is_deleted'] = 1
         self.api.state[self.local_store].remove(self)
 
 
@@ -322,5 +339,4 @@ class Reminder(Model):
             },
         }
         self.api.queue.append(cmd)
-        self.data['is_deleted'] = 1
         self.api.state['Reminders'].remove(self)

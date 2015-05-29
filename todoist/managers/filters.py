@@ -27,6 +27,40 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         self.queue.append(cmd)
         return obj
 
+    def update(self, filter_id, **kwargs):
+        """
+        Updates filter, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(filter_id)
+        if obj:
+            obj.data.update(kwargs)
+
+        args = {'id': filter_id}
+        args.update(kwargs)
+        cmd = {
+            'type': 'filter_update',
+            'uuid': self.api.generate_uuid(),
+            'args': args,
+        }
+        self.queue.append(cmd)
+
+    def delete(self, filter_id):
+        """
+        Deletes filter, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(filter_id)
+        if obj:
+            self.state[self.state_name].remove(obj)
+
+        cmd = {
+            'type': 'filter_delete',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'id': filter_id,
+            },
+        }
+        self.queue.append(cmd)
+
     def update_orders(self, id_order_mapping):
         """
         Updates in the local state the orders of multiple filters, and appends

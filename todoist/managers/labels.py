@@ -27,6 +27,40 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         self.queue.append(cmd)
         return obj
 
+    def update(self, label_id, **kwargs):
+        """
+        Updates label, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(label_id)
+        if obj:
+            obj.data.update(kwargs)
+
+        args = {'id': label_id}
+        args.update(kwargs)
+        cmd = {
+            'type': 'label_update',
+            'uuid': self.api.generate_uuid(),
+            'args': args,
+        }
+        self.queue.append(cmd)
+
+    def delete(self, label_id):
+        """
+        Deletes label, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(label_id)
+        if obj:
+            self.state[self.state_name].remove(obj)
+
+        cmd = {
+            'type': 'label_delete',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'id': label_id,
+            },
+        }
+        self.queue.append(cmd)
+
     def update_orders(self, id_order_mapping):
         """
         Updates in the local state the orders of multiple labels, and appends

@@ -27,6 +27,77 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         self.queue.append(cmd)
         return obj
 
+    def update(self, project_id, **kwargs):
+        """
+        Updates project, and appends the equivalent request to the queue.
+        """
+        obj = self.get_by_id(project_id)
+        if obj:
+            obj.data.update(kwargs)
+
+        args = {'id': project_id}
+        args.update(kwargs)
+        cmd = {
+            'type': 'project_update',
+            'uuid': self.api.generate_uuid(),
+            'args': args,
+        }
+        self.queue.append(cmd)
+
+    def delete(self, project_ids):
+        """
+        Deletes projects, and appends the equivalent request to the queue.
+        """
+        for project_id in project_ids:
+            obj = self.get_by_id(project_id)
+            if obj:
+                self.state[self.state_name].remove(obj)
+
+        cmd = {
+            'type': 'project_delete',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'ids': project_ids,
+            },
+        }
+        self.queue.append(cmd)
+
+    def archive(self, project_id):
+        """
+        Marks project as archived, and appends the equivalent request to the
+        queue.
+        """
+        obj = self.get_by_id(project_id)
+        if obj:
+            obj['is_archived'] = 1
+
+        cmd = {
+            'type': 'project_archive',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'id': project_id,
+            },
+        }
+        self.queue.append(cmd)
+
+    def unarchive(self, project_id):
+        """
+        Marks project as not archived, and appends the equivalent request to
+        the queue.
+        """
+        obj = self.get_by_id(project_id)
+        if obj:
+            obj['is_archived'] = 0
+
+        cmd = {
+            'type': 'project_unarchive',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'id': project_id,
+            },
+        }
+        self.queue.append(cmd)
+
     def update_orders_indents(self, ids_to_orders_indents):
         """
         Updates in the local state the orders and indents of multiple projects,
