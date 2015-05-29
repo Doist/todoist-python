@@ -447,7 +447,7 @@ class TodoistAPI(object):
         """
         Appends a request to the queue, to share a project with a user.
         """
-        item = {
+        cmd = {
             'type': 'share_project',
             'temp_id': self.generate_uuid(),
             'uuid': self.generate_uuid(),
@@ -456,15 +456,15 @@ class TodoistAPI(object):
                 'email': email,
             },
         }
-        item['args'].update(kwargs)
-        self.queue.append(item)
+        cmd['args'].update(kwargs)
+        self.queue.append(cmd)
 
     def delete_collaborator(self, project_id, email):
         """
         Appends a request to the queue, to delete a collaborator from a shared
         project.
         """
-        item = {
+        cmd = {
             'type': 'delete_collaborator',
             'uuid': self.generate_uuid(),
             'args': {
@@ -472,20 +472,20 @@ class TodoistAPI(object):
                 'email': email,
             },
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
 
     def take_ownership(self, project_id):
         """
         Appends a request to the queue, take ownership of a shared project.
         """
-        item = {
+        cmd = {
             'type': 'take_ownership',
             'uuid': self.generate_uuid(),
             'args': {
                 'project_id': project_id,
             },
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
 
     # Auxiliary
     def get_project(self, project_id):

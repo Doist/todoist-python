@@ -9,23 +9,23 @@ class UserManager(Manager):
         Updates the user data, and appends the equivalent request to the queue.
         """
         self.state['User'].update(kwargs)
-        item = {
+        cmd = {
             'type': 'user_update',
             'uuid': self.api.generate_uuid(),
             'args': kwargs,
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
 
     def update_goals(self, **kwargs):
         """
         Update the user's karma goals.
         """
-        item = {
+        cmd = {
             'type': 'update_goals',
             'uuid': self.api.generate_uuid(),
             'args': kwargs,
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
 
     def sync(self):
         return self.api.sync(resource_types=['user'])

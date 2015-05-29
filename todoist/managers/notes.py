@@ -18,11 +18,11 @@ class NotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
-        item = {
+        cmd = {
             'type': 'note_add',
             'temp_id': obj.temp_id,
             'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
         return obj

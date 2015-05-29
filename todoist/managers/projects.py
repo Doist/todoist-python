@@ -18,13 +18,13 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         obj.temp_id = obj['id'] = '$' + self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
-        item = {
+        cmd = {
             'type': 'project_add',
             'temp_id': obj.temp_id,
             'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
         return obj
 
     def update_orders_indents(self, ids_to_orders_indents):
@@ -37,11 +37,11 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             if obj:
                 obj['item_order'] = ids_to_orders_indents[project_id][0]
                 obj['indent'] = ids_to_orders_indents[project_id][1]
-        item = {
+        cmd = {
             'type': 'project_update_orders_indents',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'ids_to_orders_indents': ids_to_orders_indents,
             },
         }
-        self.queue.append(item)
+        self.queue.append(cmd)

@@ -23,11 +23,11 @@ class LiveNotificationsManager(Manager, AllMixin, SyncMixin):
         equivalent request to the queue.
         """
         self.state[self.state_name] = seq_no
-        item = {
+        cmd = {
             'type': 'live_notifications_mark_as_read',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'seq_no': seq_no,
             },
         }
-        self.queue.append(item)
+        self.queue.append(cmd)

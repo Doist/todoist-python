@@ -18,13 +18,13 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
-        item = {
+        cmd = {
             'type': 'filter_add',
             'temp_id': obj.temp_id,
             'uuid': self.api.generate_uuid(),
             'args': obj.data,
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
         return obj
 
     def update_orders(self, id_order_mapping):
@@ -36,11 +36,11 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             obj = self.get_by_id(filter_id)
             if obj:
                 obj['item_order'] = id_order_mapping[filter_id]
-        item = {
+        cmd = {
             'type': 'filter_update_orders',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'id_order_mapping': id_order_mapping,
             },
         }
-        self.queue.append(item)
+        self.queue.append(cmd)

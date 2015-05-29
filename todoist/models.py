@@ -32,26 +32,26 @@ class Filter(Model):
         """
         args = {'id': self['id']}
         args.update(kwargs)
-        item = {
+        cmd = {
             'type': 'filter_update',
             'uuid': self.api.generate_uuid(),
             'args': args,
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data.update(kwargs)
 
     def delete(self):
         """
         Deletes filter, and appends the equivalent request to the queue.
         """
-        item = {
+        cmd = {
             'type': 'filter_delete',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id'],
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['is_deleted'] = 1
         self.api.state['Filters'].remove(self)
 
@@ -66,26 +66,26 @@ class Item(Model):
         """
         args = {'id': self['id']}
         args.update(kwargs)
-        item = {
+        cmd = {
             'type': 'item_update',
             'uuid': self.api.generate_uuid(),
             'args': args,
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data.update(kwargs)
 
     def delete(self):
         """
         Deletes item, and appends the equivalent request to the queue.
         """
-        item = {
+        cmd = {
             'type': 'item_delete',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'ids': [self['id']],
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.api.state['Items'].remove(self)
 
     def move(self, to_project):
@@ -93,7 +93,7 @@ class Item(Model):
         Moves item to another project, and appends the equivalent request to
         the queue.
         """
-        item = {
+        cmd = {
             'type': 'item_move',
             'uuid': self.api.generate_uuid(),
             'args': {
@@ -103,7 +103,7 @@ class Item(Model):
                 'to_project': to_project,
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['project_id'] = to_project
 
     def complete(self, force_history=0, **kwargs):
@@ -111,7 +111,7 @@ class Item(Model):
         Marks item as completed, and appends the equivalent request to the
         queue.
         """
-        item = {
+        cmd = {
             'type': 'item_complete',
             'uuid': self.api.generate_uuid(),
             'args': {
@@ -120,7 +120,7 @@ class Item(Model):
                 'force_history': force_history,
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['checked'] = 1
         self.data['in_history'] = force_history
 
@@ -129,7 +129,7 @@ class Item(Model):
         Marks item as not completed, and appends the equivalent request to the
         queue.
         """
-        item = {
+        cmd = {
             'type': 'item_uncomplete',
             'uuid': self.api.generate_uuid(),
             'args': {
@@ -138,7 +138,7 @@ class Item(Model):
                 'update_item_orders': update_item_orders,
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['checked'] = 0
         self.data['in_history'] = 0
 
@@ -153,26 +153,26 @@ class Label(Model):
         """
         args = {'id': self['id']}
         args.update(kwargs)
-        item = {
+        cmd = {
             'type': 'label_update',
             'uuid': self.api.generate_uuid(),
             'args': args,
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data.update(kwargs)
 
     def delete(self):
         """
         Deletes label, and appends the equivalent request to the queue.
         """
-        item = {
+        cmd = {
             'type': 'label_delete',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id'],
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['is_deleted'] = 1
         self.api.state['Labels'].remove(self)
 
@@ -197,26 +197,26 @@ class GenericNote(Model):
         """
         args = {'id': self['id']}
         args.update(kwargs)
-        item = {
+        cmd = {
             'type': 'note_update',
             'uuid': self.api.generate_uuid(),
             'args': args,
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data.update(kwargs)
 
     def delete(self):
         """
         Deletes note, and appends the equivalent request to the queue.
         """
-        item = {
+        cmd = {
             'type': 'note_delete',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id'],
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['is_deleted'] = 1
         self.api.state[self.local_store].remove(self)
 
@@ -239,26 +239,26 @@ class Project(Model):
         """
         args = {'id': self['id']}
         args.update(kwargs)
-        item = {
+        cmd = {
             'type': 'project_update',
             'uuid': self.api.generate_uuid(),
             'args': args,
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data.update(kwargs)
 
     def delete(self):
         """
         Deletes project, and appends the equivalent request to the queue.
         """
-        item = {
+        cmd = {
             'type': 'project_delete',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'ids': [self['id']],
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.api.state['Projects'].remove(self)
 
     def archive(self):
@@ -266,14 +266,14 @@ class Project(Model):
         Marks project as archived, and appends the equivalent request to the
         queue.
         """
-        item = {
+        cmd = {
             'type': 'project_archive',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id']
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['is_archived'] = 1
 
     def unarchive(self):
@@ -281,14 +281,14 @@ class Project(Model):
         Marks project as not archived, and appends the equivalent request to
         the queue.
         """
-        item = {
+        cmd = {
             'type': 'project_unarchive',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id']
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['is_archived'] = 0
 
 
@@ -302,25 +302,25 @@ class Reminder(Model):
         """
         args = {'id': self['id']}
         args.update(kwargs)
-        item = {
+        cmd = {
             'type': 'reminder_update',
             'uuid': self.api.generate_uuid(),
             'args': args,
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data.update(kwargs)
 
     def delete(self):
         """
         Deletes reminder, and appends the equivalent request to the queue.
         """
-        item = {
+        cmd = {
             'type': 'reminder_delete',
             'uuid': self.api.generate_uuid(),
             'args': {
                 'id': self['id'],
             },
         }
-        self.api.queue.append(item)
+        self.api.queue.append(cmd)
         self.data['is_deleted'] = 1
         self.api.state['Reminders'].remove(self)

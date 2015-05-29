@@ -13,7 +13,7 @@ class BizInvitationsManager(Manager):
         Appends a request to the queue, to accept a business invitation to
         share a project.
         """
-        item = {
+        cmd = {
             'type': 'biz_accept_invitation',
             'uuid': self.api.generate_uuid(),
             'args': {
@@ -21,14 +21,14 @@ class BizInvitationsManager(Manager):
                 'invitation_secret': invitation_secret,
             },
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
 
     def reject(self, invitation_id, invitation_secret):
         """
         Appends a request to the queue, to reject a business invitation to
         share a project.
         """
-        item = {
+        cmd = {
             'type': 'biz_reject_invitation',
             'uuid': self.api.generate_uuid(),
             'args': {
@@ -36,4 +36,4 @@ class BizInvitationsManager(Manager):
                 'invitation_secret': invitation_secret,
             },
         }
-        self.queue.append(item)
+        self.queue.append(cmd)

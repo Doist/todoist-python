@@ -12,9 +12,9 @@ class LocationsManager(Manager, AllMixin, SyncMixin):
         """
         Clears the locations.
         """
-        item = {
+        cmd = {
             'type': 'clear_locations',
             'uuid': self.api.generate_uuid(),
             'args': {},
         }
-        self.queue.append(item)
+        self.queue.append(cmd)
