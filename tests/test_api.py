@@ -25,11 +25,6 @@ def cleanup(api_token):
     for item in api.state['Items'][:]:
         item.delete()
     api.commit()
-    for completed in api.get_all_completed_items()['items']:
-        api.items.uncomplete(completed['project_id'], [completed['id']])
-        api.commit()
-        api.items.delete([completed['id']])
-        api.commit()
     for project in api.state['Projects'][:]:
         if project['name'] != 'Inbox':
             project.delete()
@@ -126,37 +121,6 @@ def test_upload(api_token):
     assert response['file_type'] == 'text/plain'
 
     os.remove(filename)
-
-
-def test_completed(api_token):
-    cleanup(api_token)
-
-    api = todoist.api.TodoistAPI(api_token)
-    api.api_endpoint = 'https://local.todoist.com'
-
-    api.projects.sync()
-    inbox = [p for p in api.state['Projects'] if p['name'] == 'Inbox'][0]
-    item1 = api.items.add('Item1', inbox['id'])
-    item2 = api.items.add('Item2', inbox['id'])
-    api.commit()
-    api.items.sync()
-    item1.complete()
-    item2.complete()
-    api.commit()
-    api.items.sync()
-
-    response = api.get_all_completed_items()
-    assert len(response['items']) == 2
-    assert 'Item1' in [item['content'] for item in response['items']]
-    assert 'Item2' in [item['content'] for item in response['items']]
-
-    item1.uncomplete()
-    item2.uncomplete()
-    api.commit()
-    api.items.sync()
-    item1.delete()
-    item2.delete()
-    api.commit()
 
 
 def test_user(api_token):
