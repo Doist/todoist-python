@@ -280,6 +280,11 @@ class TodoistAPI(object):
         except ValueError:
             return response.text
 
+    def _json_serializer(self, obj):
+        import datetime
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+
     # Sync
     def generate_uuid(self):
         """
@@ -294,7 +299,8 @@ class TodoistAPI(object):
         """
         data = {
             'token': self.token,
-            'commands': json.dumps(commands or [], separators=',:'),
+            'commands': json.dumps(commands or [], separators=',:',
+                                   default=self._json_serializer),
             'day_orders_timestamp': self.state['DayOrdersTimestamp'],
         }
         if not commands:
@@ -394,7 +400,8 @@ class TodoistAPI(object):
         """
         Performs date queries and other searches, and returns the results.
         """
-        params = {'queries': json.dumps(queries, separators=',:'),
+        params = {'queries': json.dumps(queries, separators=',:',
+                                        default=self._json_serializer),
                   'token': self.token}
         params.update(kwargs)
         return self._get('query', params=params)

@@ -1,5 +1,7 @@
 import time
+import datetime
 import os
+
 import todoist
 
 
@@ -276,7 +278,8 @@ def test_item(api_token):
     assert 'UpdatedItem1' in [p['content'] for p in api.state['Items']]
     assert api.items.get_by_id(item1['id']) == item1
 
-    item2 = api.items.add('Item2', inbox['id'])
+    date_string = datetime.datetime(2038, 01, 19, 03, 14, 07)
+    item2 = api.items.add('Item2', inbox['id'], date_string=date_string)
     api.commit()
     api.items.sync()
 
