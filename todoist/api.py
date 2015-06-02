@@ -283,7 +283,7 @@ class TodoistAPI(object):
     def _json_serializer(self, obj):
         import datetime
         if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
+            return obj.strftime('%Y-%m-%dT%H:%M:%S')
 
     # Sync
     def generate_uuid(self):
