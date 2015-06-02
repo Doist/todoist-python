@@ -284,6 +284,10 @@ class TodoistAPI(object):
         import datetime
         if isinstance(obj, datetime.datetime):
             return obj.strftime('%Y-%m-%dT%H:%M:%S')
+        elif isinstance(obj, datetime.date):
+            return obj.strftime('%Y-%m-%d')
+        elif isinstance(obj, datetime.time):
+            return obj.strftime('%H:%M:%S')
 
     # Sync
     def generate_uuid(self):
