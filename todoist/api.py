@@ -246,8 +246,8 @@ class TodoistAPI(object):
         """
         # Go through all the objects for which we expect the temporary id to be
         # replaced by a real one.
-        for datatype in ['Filters', 'Items', 'Labels', 'Notes', 'Projects',
-                         'Reminders']:
+        for datatype in ['Filters', 'Items', 'Labels', 'Notes', 'ProjectNotes',
+                         'Projects', 'Reminders']:
             for obj in self.state[datatype]:
                 if obj.temp_id == temp_id:
                     obj['id'] = new_id
