@@ -571,7 +571,7 @@ def test_filter(api_token):
     assert response['Filters'][0]['is_deleted'] == 1
 
 
-def test_2reminder(api_token):
+def test_reminder(api_token):
     cleanup(api_token)
 
     api = todoist.api.TodoistAPI(api_token)
