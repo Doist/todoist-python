@@ -11,8 +11,8 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def add(self, name, **kwargs):
         """
-        Registers a label in the local state, and appends the equivalent
-        request to the queue.
+        Creates a local label object, and appends the equivalent request to the
+        queue.
         """
         obj = models.Label({'name': name}, self.api)
         obj.temp_id = obj['id'] = self.api.generate_uuid()
@@ -29,12 +29,9 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update(self, label_id, **kwargs):
         """
-        Updates label, and appends the equivalent request to the queue.
+        Updates a label remotely, by appending the equivalent request to the
+        queue.
         """
-        obj = self.get_by_id(label_id)
-        if obj:
-            obj.data.update(kwargs)
-
         args = {'id': label_id}
         args.update(kwargs)
         cmd = {
@@ -46,12 +43,9 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, label_id):
         """
-        Deletes label, and appends the equivalent request to the queue.
+        Deletes a label remotely, by appending the equivalent request to the
+        queue.
         """
-        obj = self.get_by_id(label_id)
-        if obj:
-            self.state[self.state_name].remove(obj)
-
         cmd = {
             'type': 'label_delete',
             'uuid': self.api.generate_uuid(),
@@ -63,13 +57,9 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update_orders(self, id_order_mapping):
         """
-        Updates in the local state the orders of multiple labels, and appends
-        the equivalent request to the queue.
+        Updates the orders of multiple labels remotely, by appending the
+        equivalent request to the queue.
         """
-        for filter_id in id_order_mapping.keys():
-            obj = self.get_by_id(filter_id)
-            if obj:
-                obj['item_order'] = id_order_mapping[filter_id]
         cmd = {
             'type': 'label_update_orders',
             'uuid': self.api.generate_uuid(),

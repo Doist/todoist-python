@@ -11,7 +11,7 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def add(self, name, query, **kwargs):
         """
-        Adds a filter to the local state, and appends the equivalent request to
+        Creates a local filter object, and appends the equivalent request to
         the queue.
         """
         obj = models.Filter({'name': name, 'query': query}, self.api)
@@ -29,12 +29,9 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update(self, filter_id, **kwargs):
         """
-        Updates filter, and appends the equivalent request to the queue.
+        Updates a filter remotely, by appending the equivalent request to the
+        queue.
         """
-        obj = self.get_by_id(filter_id)
-        if obj:
-            obj.data.update(kwargs)
-
         args = {'id': filter_id}
         args.update(kwargs)
         cmd = {
@@ -46,12 +43,9 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, filter_id):
         """
-        Deletes filter, and appends the equivalent request to the queue.
+        Deletes a filter remotely, by appending the equivalent request to the
+        queue.
         """
-        obj = self.get_by_id(filter_id)
-        if obj:
-            self.state[self.state_name].remove(obj)
-
         cmd = {
             'type': 'filter_delete',
             'uuid': self.api.generate_uuid(),
@@ -63,13 +57,9 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update_orders(self, id_order_mapping):
         """
-        Updates in the local state the orders of multiple filters, and appends
-        the equivalent request to the queue.
+        Updates the orders of multiple filters remotely, by appending the
+        equivalent request to the queue.
         """
-        for filter_id in id_order_mapping.keys():
-            obj = self.get_by_id(filter_id)
-            if obj:
-                obj['item_order'] = id_order_mapping[filter_id]
         cmd = {
             'type': 'filter_update_orders',
             'uuid': self.api.generate_uuid(),

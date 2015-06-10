@@ -6,9 +6,8 @@ class UserManager(Manager):
 
     def update(self, **kwargs):
         """
-        Updates the user data, and appends the equivalent request to the queue.
+        Updates the user data, by appending the equivalent request to the queue.
         """
-        self.state['User'].update(kwargs)
         cmd = {
             'type': 'user_update',
             'uuid': self.api.generate_uuid(),

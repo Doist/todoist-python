@@ -11,7 +11,7 @@ class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def add(self, item_id, **kwargs):
         """
-        Adds a reminder to the local state, and appends the equivalent request
+        Creates a local reminder object, and appends the equivalent request
         to the queue.
         """
         obj = models.Reminder({'item_id': item_id}, self.api)
@@ -29,12 +29,9 @@ class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update(self, reminder_id, **kwargs):
         """
-        Updates reminder, and appends the equivalent request to the queue.
+        Updates a reminder remotely, by appending the equivalent request to the
+        queue.
         """
-        obj = self.get_by_id(reminder_id)
-        if obj:
-            obj.data.update(kwargs)
-
         args = {'id': reminder_id}
         args.update(kwargs)
         cmd = {
@@ -46,12 +43,9 @@ class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, reminder_id):
         """
-        Deletes reminder, and appends the equivalent request to the queue.
+        Deletes a reminder remotely, by appending the equivalent request to the
+        queue.
         """
-        obj = self.get_by_id(reminder_id)
-        if obj:
-            self.state[self.state_name].remove(obj)
-
         cmd = {
             'type': 'reminder_delete',
             'uuid': self.api.generate_uuid(),

@@ -7,9 +7,8 @@ from todoist.managers.biz_invitations import BizInvitationsManager
 from todoist.managers.filters import FiltersManager
 from todoist.managers.invitations import InvitationsManager
 from todoist.managers.live_notifications import LiveNotificationsManager
-from todoist.managers.notes import NotesManager
+from todoist.managers.notes import NotesManager, ProjectNotesManager
 from todoist.managers.projects import ProjectsManager
-from todoist.managers.project_notes import ProjectNotesManager
 from todoist.managers.items import ItemsManager
 from todoist.managers.labels import LabelsManager
 from todoist.managers.reminders import RemindersManager

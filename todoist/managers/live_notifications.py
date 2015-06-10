@@ -22,7 +22,6 @@ class LiveNotificationsManager(Manager, AllMixin, SyncMixin):
         Sets in the local state the last notification read, and appends the
         equivalent request to the queue.
         """
-        self.state[self.state_name] = seq_no
         cmd = {
             'type': 'live_notifications_mark_as_read',
             'uuid': self.api.generate_uuid(),
