@@ -108,23 +108,6 @@ def test_query(api_token):
     api.commit()
 
 
-def test_upload(api_token):
-    api = todoist.api.TodoistAPI(api_token)
-    api.api_endpoint = 'https://local.todoist.com'
-
-    filename = '/tmp/example.txt'
-    f = open(filename, 'w')
-    f.write('testing\n')
-    f.close()
-
-    response = api.upload_file('/tmp/example.txt')
-    assert response['file_name'] == 'example.txt'
-    assert response['file_size'] == 8
-    assert response['file_type'] == 'text/plain'
-
-    os.remove(filename)
-
-
 def test_user(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_endpoint = 'https://local.todoist.com'
