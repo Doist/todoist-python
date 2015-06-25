@@ -5,3 +5,5 @@ todoist
    :maxdepth: 2
 
    todoist
+   models
+   managers
