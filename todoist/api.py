@@ -35,7 +35,7 @@ class TodoistAPI(object):
                 setattr(obj, key, data[key])
         return obj
 
-    def __init__(self, token='', api_endpoint='https://api.todoist.com'):
+    def __init__(self, token='', api_endpoint='https://api.todoist.com', session=None):
         self.api_endpoint = api_endpoint
         self.seq_no = 0  # Sequence number since last update
         self.seq_no_partial = {}  # Sequence number of partial syncs
@@ -65,6 +65,7 @@ class TodoistAPI(object):
         self.token = token  # User's API token
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
+        self.session = session or requests.Session()  # Session instance for requests
 
         # managers
         self.projects = ProjectsManager(self)
@@ -260,7 +261,9 @@ class TodoistAPI(object):
         """
         if not url:
             url = self.get_api_url()
-        response = requests.get(url + call, **kwargs)
+
+        response = self.session.get(url + call, **kwargs)
+
         try:
             return response.json()
         except ValueError:
@@ -273,7 +276,9 @@ class TodoistAPI(object):
         """
         if not url:
             url = self.get_api_url()
-        response = requests.post(url + call, **kwargs)
+
+        response = self.session.post(url + call, **kwargs)
+
         try:
             return response.json()
         except ValueError:
