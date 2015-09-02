@@ -41,22 +41,22 @@ Read the built documentation by opening:
 
 Import the library and try some commands:
 
-    ```python
-    $ python
-    >>> import todoist
-    >>> api = todoist.TodoistAPI()
-    >>> user = api.login('john.doe@gmail.com', 'secret')
-    >>> print(user['full_name'])
-    John Doe
-    >>> response = api.sync(resource_types=['all'])
-    >>> for project in response['Projects']:
-            print(project['name'])
-    Personal
-    Shopping
-    Work
-    Errands
-    Movies to watch
-    ```
+```python
+$ python
+>>> import todoist
+>>> api = todoist.TodoistAPI()
+>>> user = api.login('john.doe@gmail.com', 'secret')
+>>> print(user['full_name'])
+John Doe
+>>> response = api.sync(resource_types=['all'])
+>>> for project in response['Projects']:
+        print(project['name'])
+Personal
+Shopping
+Work
+Errands
+Movies to watch
+```
 
 
 ## Testing the library
