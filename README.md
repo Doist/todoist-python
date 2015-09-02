@@ -50,7 +50,8 @@ $ python
 John Doe
 >>> response = api.sync(resource_types=['all'])
 >>> for project in response['Projects']:
-        print(project['name'])
+...     print(project['name'])
+...
 Personal
 Shopping
 Work
