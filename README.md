@@ -10,7 +10,7 @@ Requirements:
 
 Clone the repo:
 
-    $ git clone git@github.com:Doist/todoist-python.git 
+    $ git clone git@github.com:Doist/todoist-python.git
 
 Create an environment:
 
@@ -41,16 +41,23 @@ Read the built documentation by opening:
 
 Import the library and try some commands:
 
-    $ python
-    [...]
-    >>> import todoist
-    >>> api = todoist.TodoistAPI()
-    >>> api.login('me', 'secret')
-    [...]
-    >>> api.ping('mytoken')
-    [...]
-    >>> api.get()
-    [...]
+```python
+$ python
+>>> import todoist
+>>> api = todoist.TodoistAPI()
+>>> user = api.login('john.doe@gmail.com', 'secret')
+>>> print(user['full_name'])
+John Doe
+>>> response = api.sync(resource_types=['all'])
+>>> for project in response['Projects']:
+...     print(project['name'])
+...
+Personal
+Shopping
+Work
+Errands
+Movies to watch
+```
 
 
 ## Testing the library
