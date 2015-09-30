@@ -448,6 +448,15 @@ class TodoistAPI(object):
         params.update(kwargs)
         return self._get('get_all_completed_items', params=params)
 
+    def get_completed_items(self, project_id, **kwargs):
+        """
+        Returns a project's completed items.
+        """
+        params = {'token': self.token,
+                  'project_id': project_id}
+        params.update(kwargs)
+        return self._get('get_completed_items', params=params)
+
     def add_item(self, content, **kwargs):
         """
         Adds a new task.
