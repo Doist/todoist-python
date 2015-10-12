@@ -92,16 +92,18 @@ class Item(Model):
             self.data['item_order'] = restore_state[self['id']][2]
             self.data['indent'] = restore_state[self['id']][3]
 
-    def update_date_complete(self, new_date_utc, date_string, is_forward):
+    def update_date_complete(self, new_date_utc=None, date_string=None,
+                             is_forward=None):
         """
         Completes a recurring task, and appends the equivalent request to the
         queue.
         """
         self.api.items.update_date_complete(self['id'], new_date_utc,
                                             date_string, is_forward)
-        self.data['new_date_utc'] = new_date_utc
-        self.data['date_string'] = date_string
-        self.data['is_forward'] = is_forward
+        if new_date_utc:
+            self.data['due_date_utc'] = new_date_utc
+        if date_string:
+            self.data['date_string'] = date_string
 
 
 class Label(Model):
