@@ -67,6 +67,12 @@ class Item(Model):
         self.api.items.move({self['project_id']: [self['id']]}, to_project)
         self.data['project_id'] = to_project
 
+    def close(self):
+        """
+        Marks item as closed
+        """
+        self.api.items.close(self['id'])
+
     def complete(self, force_history=0):
         """
         Marks item as completed, and appends the equivalent request to the
