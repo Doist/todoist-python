@@ -69,7 +69,7 @@ def test_link(api_token):
     response = api.get_redirect_link()
     assert 'link' in response
     s = response['link']
-    assert s.startswith('http://local.todoist.com/secureRedirect?path=')
+    assert s.startswith('https://local.todoist.com/secureRedirect?path=')
 
 
 def test_stats(api_token):
