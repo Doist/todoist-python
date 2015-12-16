@@ -457,6 +457,27 @@ class TodoistAPI(object):
         params.update(kwargs)
         return self._get('get_completed_items', params=params)
 
+    def get_uploads(self, **kwargs):
+        """
+        Returns all user's uploads.
+
+        kwargs:
+            limit: (int, optional) number of results (1-50)
+            last_id: (int, optional) return results with id<last_id
+        """
+        params = {'token': self.token}
+        params.update(kwargs)
+        return self._get('uploads/get', params=params)
+
+    def delete_upload(self, file_url):
+        """
+        Delete upload.
+
+        param file_url: (str) uploaded file URL
+        """
+        params = {'token': self.token, 'file_url': file_url}
+        return self._get('uploads/delete', params=params)
+
     def add_item(self, content, **kwargs):
         """
         Adds a new task.
