@@ -310,7 +310,7 @@ def test_item(api_token):
     assert response['Items'][0]['is_deleted'] == 1
     assert 'UpdatedItem1' not in [p['content'] for p in api.state['Items']]
 
-    api.items.complete(item2['project_id'], [item2['id']])
+    api.items.complete([item2['id']])
     api.commit()
     response = api.items.sync()
     assert response['Items'][0]['content'] == 'Item2'

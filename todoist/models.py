@@ -78,8 +78,7 @@ class Item(Model):
         Marks item as completed, and appends the equivalent request to the
         queue.
         """
-        self.api.items.complete(self['project_id'], [self['id']],
-                                force_history)
+        self.api.items.complete([self['id']], force_history)
         self.data['checked'] = 1
         self.data['in_history'] = force_history
 

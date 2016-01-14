@@ -84,7 +84,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def complete(self, project_id, item_ids, force_history=0):
+    def complete(self, item_ids, force_history=0):
         """
         Marks items as completed remotely, by appending the equivalent request to the
         queue.
@@ -93,7 +93,6 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             'type': 'item_complete',
             'uuid': self.api.generate_uuid(),
             'args': {
-                'project_id': project_id,
                 'ids': item_ids,
                 'force_history': force_history,
             },
