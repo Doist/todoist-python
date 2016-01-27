@@ -141,21 +141,6 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def uncomplete_update_meta(self, project_id, ids_to_metas):
-        """
-        Marks an item as completed remotely, by appending the equivalent
-        request to the queue.
-        """
-        cmd = {
-            'type': 'item_uncomplete_update_meta',
-            'uuid': self.api.generate_uuid(),
-            'args': {
-                'project_id': project_id,
-                'ids_to_metas': ids_to_metas,
-            },
-        }
-        self.queue.append(cmd)
-
     def update_orders_indents(self, ids_to_orders_indents):
         """
         Updates the order and indents of multiple items remotely, by appending

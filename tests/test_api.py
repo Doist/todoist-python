@@ -264,16 +264,6 @@ def test_item(api_token):
     api.commit()
     api.items.sync()
 
-    api.items.uncomplete_update_meta(inbox['id'], {item1['id']: [0, 0, 1],
-                                                   item2['id']: [0, 0, 2]})
-    api.commit()
-    response = api.items.sync()
-    for item in response['Items']:
-        if item['id'] == item1['id']:
-            assert item['item_order'] == 1
-        if item['id'] == item2['id']:
-            assert item['item_order'] == 2
-
     now = time.time()
     tomorrow = time.gmtime(now + 24*3600)
     new_date_utc = time.strftime("%Y-%m-%dT%H:%M", tomorrow)
