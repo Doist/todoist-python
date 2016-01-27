@@ -306,7 +306,7 @@ def test_item(api_token):
     assert response['Items'][0]['content'] == 'Item2'
     assert response['Items'][0]['checked'] == 1
 
-    api.items.uncomplete(item2['project_id'], [item2['id']])
+    api.items.uncomplete([item2['id']])
     api.commit()
     response = api.items.sync()
     assert response['Items'][0]['content'] == 'Item2'

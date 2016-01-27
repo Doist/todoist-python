@@ -99,14 +99,12 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def uncomplete(self, project_id, item_ids, update_item_orders=1,
-                   restore_state=None):
+    def uncomplete(self, item_ids, update_item_orders=1, restore_state=None):
         """
         Marks items as not completed remotely, by appending the equivalent request to the
         queue.
         """
         args = {
-            'project_id': project_id,
             'ids': item_ids,
             'update_item_orders': update_item_orders,
         }

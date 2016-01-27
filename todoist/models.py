@@ -87,8 +87,8 @@ class Item(Model):
         Marks item as not completed, and appends the equivalent request to the
         queue.
         """
-        self.api.items.uncomplete(self['project_id'], [self['id']],
-                                update_item_orders, restore_state)
+        self.api.items.uncomplete([self['id']], update_item_orders,
+                                  restore_state)
         self.data['checked'] = 0
         self.data['in_history'] = 0
         if restore_state and self['id'] in restore_state:
