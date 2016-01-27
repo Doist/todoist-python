@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
+from .generic import (
+    Manager, AllMixin, GetByIdMixin, SyncMixin, ScheduledMixin
+)
 
 
-class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
+class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin, ScheduledMixin):
 
     state_name = 'Items'
     object_type = 'item'

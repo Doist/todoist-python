@@ -48,3 +48,30 @@ class SyncMixin(object):
     """
     def sync(self):
         return self.api.sync(resource_types=[self.resource_type])
+
+
+class ScheduledMixin(object):
+
+    state_name = 'Items'
+    object_type = 'item'
+    resource_type = 'items'
+
+    def today(self):
+        """
+        Find and return the objects that scheduled to Today.
+        """
+        items = self.api.query('Today')
+
+        if len(items) > 0:
+            return items[0]['data']
+        return items
+
+    def tomorrow(self):
+        """
+        Find and return the objects that scheduled to Tomorrow.
+        """
+        items = self.api.query('Tomorrow')
+
+        if len(items) > 0:
+            return items[0]['data']
+        return items
