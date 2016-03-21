@@ -8,9 +8,9 @@ Requirements:
 * PIP: https://pypi.python.org/pypi/pip
 * Virtualenv: https://pypi.python.org/pypi/virtualenv
 
-Clone the repo:
+Clone the repo and enter it:
 
-    $ git clone git@github.com:Doist/todoist-python.git
+    $ git clone git@github.com:Doist/todoist-python.git ; cd todoist-python
 
 Create an environment:
 
