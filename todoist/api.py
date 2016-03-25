@@ -614,6 +614,38 @@ class TodoistAPI(object):
                     if o['id'] == obj['id']][0]
         return None
 
+    # Templates
+    def import_template_into_project(self, project_id, filename, **kwargs):
+        """
+        Imports a template into a project.
+        """
+        data = {'token': self.token,
+                'project_id': project_id}
+        data.update(kwargs)
+        files = {'file': open(filename, 'r')}
+        return self._post('templates/import_into_project', self.get_api_url(),
+                          data=data, files=files)
+
+    def export_template_as_file(self, project_id, **kwargs):
+        """
+        Exports a template as a file.
+        """
+        data = {'token': self.token,
+                'project_id': project_id}
+        data.update(kwargs)
+        return self._post('templates/export_as_file', self.get_api_url(),
+                          data=data)
+
+    def export_template_as_url(self, project_id, **kwargs):
+        """
+        Exports a template as a URL.
+        """
+        data = {'token': self.token,
+                'project_id': project_id}
+        data.update(kwargs)
+        return self._post('templates/export_as_url', self.get_api_url(),
+                          data=data)
+
     # Class
     def __repr__(self):
         name = self.__class__.__name__

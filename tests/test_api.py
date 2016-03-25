@@ -1,6 +1,5 @@
 import time
 import datetime
-import os
 
 import todoist
 
@@ -776,3 +775,35 @@ def test_share(api_token, api_token2):
     project3.delete()
     api.commit()
     api.projects.sync()
+
+
+def test_templates(api_token):
+    cleanup(api_token)
+
+    api = todoist.api.TodoistAPI(api_token)
+    api.api_endpoint = 'https://local.todoist.com'
+
+    project1 = api.projects.add('Project1')
+    project2 = api.projects.add('Project2')
+    api.commit()
+    api.projects.sync()
+
+    item1 = api.items.add('Item1', project1['id'])
+    api.commit()
+    api.items.sync()
+
+    template = api.export_template_as_file(project1['id'])
+    assert 'task,Item1,4,1' in template
+    example = open('/tmp/example.csv', 'w')
+    example.write(template)
+    example.close()
+
+    result = api.import_template_into_project(project1['id'], '/tmp/example.csv')
+    assert result == {'status': u'ok'}
+
+    item1.delete()
+    project1.delete()
+    project2.delete()
+    api.commit()
+    api.projects.sync()
+    api.items.sync()
