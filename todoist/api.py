@@ -539,13 +539,17 @@ class TodoistAPI(object):
         """
         params = {'token': self.token,
                   'project_id': project_id}
-        data = self._get('get_project', params=params)
-        obj = data.get('project', None)
-        if obj and 'error' not in obj:
-            self._update_state({'Projects': [obj]})
-            return [o for o in self.state['Projects']
-                    if o['id'] == obj['id']][0]
-        return None
+        obj = self._get('get_project', params=params)
+        print(obj)
+        if obj and 'error' in obj:
+            return None
+        data = {'Projects': [], 'ProjectNotes': []}
+        if obj.get('project'):
+            data['Projects'].append(obj.get('project'))
+        if obj.get('notes'):
+            data['ProjectNotes'] += obj.get('notes')
+        self._update_state(data)
+        return obj
 
     def get_item(self, item_id):
         """
@@ -553,12 +557,18 @@ class TodoistAPI(object):
         """
         params = {'token': self.token,
                   'item_id': item_id}
-        data = self._get('get_item', params=params)
-        obj = data.get('item', None)
-        if obj and 'error' not in obj:
-            self._update_state({'Items': [obj]})
-            return [o for o in self.state['Items'] if o['id'] == obj['id']][0]
-        return None
+        obj = self._get('get_item', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'Projects': [], 'Items': [], 'Notes': []}
+        if obj.get('project'):
+            data['Projects'].append(obj.get('project'))
+        if obj.get('item'):
+            data['Items'].append(obj.get('item'))
+        if obj.get('notes'):
+            data['Notes'] += obj.get('notes')
+        self._update_state(data)
+        return obj
 
     def get_label(self, label_id):
         """
@@ -566,12 +576,14 @@ class TodoistAPI(object):
         """
         params = {'token': self.token,
                   'label_id': label_id}
-        data = self._get('get_label', params=params)
-        obj = data.get('label', None)
-        if obj and 'error' not in obj:
-            self._update_state({'Labels': [obj]})
-            return [o for o in self.state['Labels'] if o['id'] == obj['id']][0]
-        return None
+        obj = self._get('get_label', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'Labels': []}
+        if obj.get('label'):
+            data['Labels'].append(obj.get('label'))
+        self._update_state(data)
+        return obj
 
     def get_note(self, note_id):
         """
@@ -579,12 +591,14 @@ class TodoistAPI(object):
         """
         params = {'token': self.token,
                   'note_id': note_id}
-        data = self._get('get_note', params=params)
-        obj = data.get('note', None)
-        if obj and 'error' not in obj:
-            self._update_state({'Notes': [obj]})
-            return [o for o in self.state['Notes'] if o['id'] == obj['id']][0]
-        return None
+        obj = self._get('get_note', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'Notes': []}
+        if obj.get('note'):
+            data['Notes'].append(obj.get('note'))
+        self._update_state(data)
+        return obj
 
     def get_filter(self, filter_id):
         """
@@ -592,13 +606,14 @@ class TodoistAPI(object):
         """
         params = {'token': self.token,
                   'filter_id': filter_id}
-        data = self._get('get_filter', params=params)
-        obj = data.get('filter', None)
-        if obj and 'error' not in obj:
-            self._update_state({'Filters': [obj]})
-            return [o for o in self.state['Filters']
-                    if o['id'] == obj['id']][0]
-        return None
+        obj = self._get('get_filter', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'Filters': []}
+        if obj.get('filter'):
+            data['Filters'].append(obj.get('filter'))
+        self._update_state(data)
+        return obj
 
     def get_reminder(self, reminder_id):
         """
@@ -606,13 +621,14 @@ class TodoistAPI(object):
         """
         params = {'token': self.token,
                   'reminder_id': reminder_id}
-        data = self._get('get_reminder', params=params)
-        obj = data.get('reminder', None)
-        if obj and 'error' not in obj:
-            self._update_state({'Reminders': [obj]})
-            return [o for o in self.state['Reminders']
-                    if o['id'] == obj['id']][0]
-        return None
+        obj = self._get('get_reminder', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'Reminders': []}
+        if obj.get('reminder'):
+            data['Reminders'].append(obj.get('reminder'))
+        self._update_state(data)
+        return obj
 
     # Templates
     def import_template_into_project(self, project_id, filename, **kwargs):
