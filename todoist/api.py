@@ -662,6 +662,33 @@ class TodoistAPI(object):
         return self._post('templates/export_as_url', self.get_api_url(),
                           data=data)
 
+    # Business
+    def business_users_invite(self, email_list):
+        """
+        Send a business user invitation.
+        """
+        params = {'token': self.token,
+                  'email_list': json.dumps(email_list)}
+        return self._get('business/users/invite', params=params)
+
+    def business_users_accept_invitation(self, id, secret):
+        """
+        Accept a business user invitation.
+        """
+        params = {'token': self.token,
+                  'id': id,
+                  'secret': secret}
+        return self._get('business/users/accept_invitation', params=params)
+
+    def business_users_reject_invitation(self, id, secret):
+        """
+        Reject a business user invitation.
+        """
+        params = {'token': self.token,
+                  'id': id,
+                  'secret': secret}
+        return self._get('business/users/reject_invitation', params=params)
+
     # Class
     def __repr__(self):
         name = self.__class__.__name__
