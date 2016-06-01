@@ -6,7 +6,6 @@ class CollaboratorStatesManager(Manager, SyncMixin):
 
     state_name = 'CollaboratorStates'
     object_type = None  # there is no object type associated
-    resource_type = 'collaborators'
 
     def get_by_ids(self, project_id, user_id):
         """

@@ -1,6 +1,8 @@
 import uuid
 import json
 import requests
+import datetime
+from functools import partial
 
 from todoist import models
 from todoist.managers.biz_invitations import BizInvitationsManager
@@ -18,14 +20,17 @@ from todoist.managers.collaborators import CollaboratorsManager
 from todoist.managers.collaborator_states import CollaboratorStatesManager
 
 
+class SyncError(Exception):
+    pass
+
+
 class TodoistAPI(object):
     """
     Implements the API that makes it possible to interact with a Todoist user
     account and its data.
     """
-    _serialize_fields = ('token', 'api_endpoint', 'seq_no', 'seq_no_partial',
-                         'seq_no_global', 'seq_no_global_partial', 'state',
-                         'temp_ids')
+    _serialize_fields = ('token', 'api_endpoint', 'sync_token', 'state', 'temp_ids')
+
 
     @classmethod
     def deserialize(cls, data):
@@ -37,31 +42,7 @@ class TodoistAPI(object):
 
     def __init__(self, token='', api_endpoint='https://api.todoist.com', session=None):
         self.api_endpoint = api_endpoint
-        self.seq_no = 0  # Sequence number since last update
-        self.seq_no_partial = {}  # Sequence number of partial syncs
-        self.seq_no_global = 0  # Global sequence number since last update
-        self.seq_no_global_partial = {}  # Global sequence number of partial syncs
-        self.state = {  # Local copy of all of the user's objects
-            'CollaboratorStates': [],
-            'Collaborators': [],
-            'DayOrders': {},
-            'DayOrdersTimestamp': '',
-            'Filters': [],
-            'Items': [],
-            'Labels': [],
-            'LiveNotifications': [],
-            'LiveNotificationsLastRead': -1,
-            'Locations': [],
-            'Notes': [],
-            'ProjectNotes': [],
-            'Projects': [],
-            'Reminders': [],
-            'Settings': {},
-            'SettingsNotifications': {},
-            'User': {},
-            'UserId': -1,
-            'WebStaticVersion': -1,
-        }
+        self.reset_state()
         self.token = token  # User's API token
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
@@ -83,6 +64,30 @@ class TodoistAPI(object):
         self.collaborators = CollaboratorsManager(self)
         self.collaborator_states = CollaboratorStatesManager(self)
 
+    def reset_state(self):
+        self.sync_token = '*'
+        self.state = {  # Local copy of all of the user's objects
+            'CollaboratorStates': [],
+            'Collaborators': [],
+            'DayOrders': {},
+            'DayOrdersTimestamp': '',
+            'Filters': [],
+            'Items': [],
+            'Labels': [],
+            'LiveNotifications': [],
+            'LiveNotificationsLastRead': -1,
+            'Locations': [],
+            'Notes': [],
+            'ProjectNotes': [],
+            'Projects': [],
+            'Reminders': [],
+            'Settings': {},
+            'SettingsNotifications': {},
+            'User': {},
+            'UserId': -1,
+            'WebStaticVersion': -1,
+        }
+
     def __getitem__(self, key):
         return self.state[key]
 
@@ -97,6 +102,9 @@ class TodoistAPI(object):
         Updates the local state, with the data returned by the server after a
         sync.
         """
+        # Check sync token first
+        self.sync_token = syncdata['sync_token']
+
         # It is straightforward to update these type of data, since it is
         # enough to just see if they are present in the sync data, and then
         # either replace the local values or update them.
@@ -129,8 +137,16 @@ class TodoistAPI(object):
         # necessary to find out whether an object in the sync data is new,
         # updates an existing object, or marks an object to be deleted.  But
         # the same procedure takes place for each of these types of data.
-        for datatype in 'Filters', 'Items', 'Labels', 'LiveNotifications', \
-                        'Notes', 'ProjectNotes', 'Projects', 'Reminders':
+        resp_models_mapping = [
+            ('Filters', models.Filter),
+            ('Items', models.Item),
+            ('Labels', models.Label),
+            ('LiveNotifications', models.LiveNotification),
+            ('ProjectNotes', models.ProjectNote),
+            ('Projects', models.Project),
+            ('Reminders', models.Reminder),
+        ]
+        for datatype, model in resp_models_mapping:
             if datatype not in syncdata:
                 continue
 
@@ -152,8 +168,7 @@ class TodoistAPI(object):
                     # unless it is marked as to be deleted (in which case it's
                     # ignored).
                     if remoteobj.get('is_deleted', 0) == 0:
-                        model = 'models.' + datatype[:-1]
-                        newobj = eval(model)(remoteobj, self)
+                        newobj = model(remoteobj, self)
                         self.state[datatype].append(newobj)
 
     def _find_object(self, objtype, obj):
@@ -185,58 +200,6 @@ class TodoistAPI(object):
             return self.reminders.get_by_id(obj['id'], only_local=True)
         else:
             return None
-
-    def _get_seq_no(self, resource_types):
-        """
-        Calculates what is the seq_no that should be sent, based on the last
-        seq_no and the resource_types that are requested.
-        """
-        seq_no = -1
-        seq_no_global = -1
-
-        if resource_types:
-            for resource in resource_types:
-                if resource not in self.seq_no_partial:
-                    seq_no = self.seq_no
-                else:
-                    if seq_no == -1 or self.seq_no_partial[resource] < seq_no:
-                        seq_no = self.seq_no_partial[resource]
-
-                if resource not in self.seq_no_global_partial:
-                    seq_no_global = self.seq_no_global
-                else:
-                    if seq_no_global == -1 or \
-                       self.seq_no_global_partial[resource] < seq_no_global:
-                        seq_no_global = self.seq_no_global_partial[resource]
-
-        if seq_no == -1:
-            seq_no = self.seq_no
-        if seq_no_global == -1:
-            seq_no_global = self.seq_no_global
-
-        return seq_no, seq_no_global
-
-    def _update_seq_no(self, seq_no, seq_no_global, resource_types):
-        """
-        Updates the seq_no and the seq_no_partial, based on the seq_no in
-        the response and the resource_types that were requested.
-        """
-        if not seq_no and not seq_no_global or not resource_types:
-            return
-        if 'all' in resource_types:
-            if seq_no:
-                self.seq_no = seq_no
-                self.seq_no_partial = {}
-            if seq_no_global:
-                self.seq_no_global = seq_no_global
-                self.seq_no_global_partial = {}
-        else:
-            if seq_no and seq_no > self.seq_no:
-                for resource in resource_types:
-                    self.seq_no_partial[resource] = seq_no
-            if seq_no_global and seq_no_global > self.seq_no_global:
-                for resource in resource_types:
-                    self.seq_no_global_partial[resource] = seq_no_global
 
     def _replace_temp_id(self, temp_id, new_id):
         """
@@ -284,14 +247,6 @@ class TodoistAPI(object):
         except ValueError:
             return response.text
 
-    def _json_serializer(self, obj):
-        import datetime
-        if isinstance(obj, datetime.datetime):
-            return obj.strftime('%Y-%m-%dT%H:%M:%S')
-        elif isinstance(obj, datetime.date):
-            return obj.strftime('%Y-%m-%d')
-        elif isinstance(obj, datetime.time):
-            return obj.strftime('%H:%M:%S')
 
     # Sync
     def generate_uuid(self):
@@ -300,36 +255,24 @@ class TodoistAPI(object):
         """
         return str(uuid.uuid1())
 
-    def sync(self, commands=None, **kwargs):
+    def sync(self, commands=None):
         """
         Sends to the server the changes that were made locally, and also
         fetches the latest updated data from the server.
         """
-        data = {
+        post_data = {
             'token': self.token,
-            'commands': json.dumps(commands or [], separators=',:',
-                                   default=self._json_serializer),
+            'sync_token': self.sync_token,
             'day_orders_timestamp': self.state['DayOrdersTimestamp'],
+            'include_notification_settings': 1,
+            'resource_types': json_dumps(['all']),
+            'commands': json_dumps(commands or []),
         }
-        if not commands:
-            data['seq_no'], data['seq_no_global'] = \
-                self._get_seq_no(kwargs.get('resource_types', None))
+        response = self._post('sync', data=post_data)
+        self._update_state(response)
+        return response
 
-        if 'include_notification_settings' in kwargs:
-            data['include_notification_settings'] = 1
-        if 'resource_types' in kwargs:
-            data['resource_types'] = json.dumps(kwargs['resource_types'],
-                                                separators=',:')
-        data = self._post('sync', data=data)
-        self._update_state(data)
-        if not commands:
-            self._update_seq_no(data.get('seq_no', None),
-                                data.get('seq_no_global', None),
-                                kwargs.get('resource_types', None))
-
-        return data
-
-    def commit(self):
+    def commit(self, raise_on_error=True):
         """
         Commits all requests that are queued.  Note that, without calling this
         method none of the changes that are made to the objects are actually
@@ -345,6 +288,10 @@ class TodoistAPI(object):
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
         if 'SyncStatus' in ret:
+            if raise_on_error:
+                for k, v in ret['SyncStatus'].items():
+                    if v != 'ok':
+                        raise SyncError(k, v)
             return ret['SyncStatus']
         return ret
 
@@ -408,8 +355,7 @@ class TodoistAPI(object):
         """
         Performs date queries and other searches, and returns the results.
         """
-        params = {'queries': json.dumps(queries, separators=',:',
-                                        default=self._json_serializer),
+        params = {'queries': json_dumps(queries),
                   'token': self.token}
         params.update(kwargs)
         return self._get('query', params=params)
@@ -696,3 +642,15 @@ class TodoistAPI(object):
         email = self.user.get('email')
         email_repr = repr(email) if email else '<not synchronized>'
         return '%s%s(%s)' % (name, unsaved, email_repr)
+
+
+def json_default(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.strftime('%Y-%m-%dT%H:%M:%S')
+    elif isinstance(obj, datetime.date):
+        return obj.strftime('%Y-%m-%d')
+    elif isinstance(obj, datetime.time):
+        return obj.strftime('%H:%M:%S')
+
+
+json_dumps = partial(json.dumps, separators=',:', default=json_default)

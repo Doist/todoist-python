@@ -7,7 +7,6 @@ class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Reminders'
     object_type = 'reminder'
-    resource_type = 'reminders'
 
     def add(self, item_id, **kwargs):
         """

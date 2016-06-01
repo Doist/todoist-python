@@ -7,7 +7,7 @@ import todoist
 def cleanup(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_endpoint = 'https://local.todoist.com'
-    api.sync(resource_types=['all'])
+    api.sync()
     for filter in api.state['Filters'][:]:
         filter.delete()
     api.commit()
@@ -113,7 +113,7 @@ def test_user(api_token):
     date_format_new = 1 - date_format
     api.user.update(date_format=date_format_new)
     api.commit()
-    api.seq_no = 0
+    api.sync_token = '*'
     api.user.sync()
     assert date_format_new == api.state['User']['date_format']
     api.user.update_goals(vacation_mode=1)
@@ -393,11 +393,11 @@ def test_note(api_token):
     api.projects.sync()
     inbox = [p for p in api.state['Projects'] if p['name'] == 'Inbox'][0]
     item1 = api.items.add('Item1', inbox['id'])
-    api.commit()
+    resp1 = api.commit()
     response = api.notes.sync()
 
     note1 = api.notes.add(item1['id'], 'Note1')
-    api.commit()
+    resp2 = api.commit()
     response = api.notes.sync()
     assert response['Notes'][0]['content'] == 'Note1'
     assert 'Note1' in [p['content'] for p in api.state['Notes']]

@@ -7,7 +7,6 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Projects'
     object_type = 'project'
-    resource_type = 'projects'
 
     def add(self, name, **kwargs):
         """
