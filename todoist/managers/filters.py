@@ -7,7 +7,6 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Filters'
     object_type = 'filter'
-    resource_type = 'filters'
 
     def add(self, name, query, **kwargs):
         """

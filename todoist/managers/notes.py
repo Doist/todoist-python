@@ -6,7 +6,6 @@ from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 class GenericNotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     object_type = 'note'
-    resource_type = 'notes'
 
     def update(self, note_id, **kwargs):
         """

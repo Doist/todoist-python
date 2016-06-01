@@ -7,7 +7,6 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Items'
     object_type = 'item'
-    resource_type = 'items'
 
     def add(self, content, project_id, **kwargs):
         """

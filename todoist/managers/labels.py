@@ -7,7 +7,6 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     state_name = 'Labels'
     object_type = 'label'
-    resource_type = 'labels'
 
     def add(self, name, **kwargs):
         """
