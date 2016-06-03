@@ -6,7 +6,6 @@ class InvitationsManager(Manager, SyncMixin):
 
     state_name = None  # there is no local state associated
     object_type = 'share_invitation'
-    resource_type = None  # there is no resource type associated
 
     def accept(self, invitation_id, invitation_secret):
         """

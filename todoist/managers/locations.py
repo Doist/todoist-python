@@ -6,7 +6,6 @@ class LocationsManager(Manager, AllMixin, SyncMixin):
 
     state_name = 'Locations'
     object_type = None  # there is no local state associated
-    resource_type = 'locations'
 
     def clear(self):
         """

@@ -6,7 +6,6 @@ class LiveNotificationsManager(Manager, AllMixin, SyncMixin):
 
     state_name = 'LiveNotifications'
     object_type = 'live_notification'
-    resource_type = 'live_notifications'
 
     def get_by_key(self, notification_key):
         """
@@ -17,16 +16,16 @@ class LiveNotificationsManager(Manager, AllMixin, SyncMixin):
                 return obj
         return None
 
-    def mark_as_read(self, seq_no):
+    def set_last_read(self, id):
         """
         Sets in the local state the last notification read, and appends the
         equivalent request to the queue.
         """
         cmd = {
-            'type': 'live_notifications_mark_as_read',
+            'type': 'live_notifications_set_last_read',
             'uuid': self.api.generate_uuid(),
             'args': {
-                'seq_no': seq_no,
+                'id': id,
             },
         }
         self.queue.append(cmd)

@@ -4,7 +4,6 @@ class Manager(object):
     # should be re-defined in a subclass
     state_name = None
     object_type = None
-    resource_type = None
 
     def __init__(self, api):
         self.api = api
@@ -47,4 +46,4 @@ class SyncMixin(object):
     Syncs this specific type of objects.
     """
     def sync(self):
-        return self.api.sync(resource_types=[self.resource_type])
+        return self.api.sync()
