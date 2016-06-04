@@ -76,6 +76,7 @@ class TodoistAPI(object):
             'Labels': [],
             'LiveNotifications': [],
             'LiveNotificationsLastRead': -1,
+            'LiveNotificationsLastReadId': -1,
             'Locations': [],
             'Notes': [],
             'ProjectNotes': [],
@@ -119,6 +120,9 @@ class TodoistAPI(object):
         if 'LiveNotificationsLastRead' in syncdata:
             self.state['LiveNotificationsLastRead'] = \
                 syncdata['LiveNotificationsLastRead']
+        if 'LiveNotificationsLastReadId' in syncdata:
+            self.state['LiveNotificationsLastReadId'] = \
+                syncdata['LiveNotificationsLastReadId']
         if 'Locations' in syncdata:
             self.state['Locations'] = syncdata['Locations']
         if 'Settings' in syncdata:
@@ -142,6 +146,7 @@ class TodoistAPI(object):
             ('Items', models.Item),
             ('Labels', models.Label),
             ('LiveNotifications', models.LiveNotification),
+            ('Notes', models.Note),
             ('ProjectNotes', models.ProjectNote),
             ('Projects', models.Project),
             ('Reminders', models.Reminder),
@@ -269,6 +274,10 @@ class TodoistAPI(object):
             'commands': json_dumps(commands or []),
         }
         response = self._post('sync', data=post_data)
+        if 'TempIdMapping' in response:
+            for temp_id, new_id in response['TempIdMapping'].items():
+                self.temp_ids[temp_id] = new_id
+                self._replace_temp_id(temp_id, new_id)
         self._update_state(response)
         return response
 
@@ -283,16 +292,11 @@ class TodoistAPI(object):
             return
         ret = self.sync(commands=self.queue)
         del self.queue[:]
-        if 'TempIdMapping' in ret:
-            for temp_id, new_id in ret['TempIdMapping'].items():
-                self.temp_ids[temp_id] = new_id
-                self._replace_temp_id(temp_id, new_id)
         if 'SyncStatus' in ret:
             if raise_on_error:
                 for k, v in ret['SyncStatus'].items():
                     if v != 'ok':
                         raise SyncError(k, v)
-            return ret['SyncStatus']
         return ret
 
     # Authentication
@@ -486,7 +490,6 @@ class TodoistAPI(object):
         params = {'token': self.token,
                   'project_id': project_id}
         obj = self._get('get_project', params=params)
-        print(obj)
         if obj and 'error' in obj:
             return None
         data = {'Projects': [], 'ProjectNotes': []}
