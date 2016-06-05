@@ -38,7 +38,7 @@ class GenericNotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
 class NotesManager(GenericNotesManager):
 
-    state_name = 'Notes'
+    state_name = 'notes'
 
     def add(self, item_id, content, **kwargs):
         """
@@ -61,7 +61,7 @@ class NotesManager(GenericNotesManager):
 
 class ProjectNotesManager(GenericNotesManager):
 
-    state_name = 'ProjectNotes'
+    state_name = 'project_notes'
 
     def add(self, project_id, content, **kwargs):
         """

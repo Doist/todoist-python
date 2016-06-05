@@ -5,7 +5,7 @@ from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
-    state_name = 'Reminders'
+    state_name = 'reminders'
     object_type = 'reminder'
 
     def add(self, item_id, **kwargs):

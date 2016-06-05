@@ -67,26 +67,24 @@ class TodoistAPI(object):
     def reset_state(self):
         self.sync_token = '*'
         self.state = {  # Local copy of all of the user's objects
-            'CollaboratorStates': [],
-            'Collaborators': [],
-            'DayOrders': {},
-            'DayOrdersTimestamp': '',
-            'Filters': [],
-            'Items': [],
-            'Labels': [],
-            'LiveNotifications': [],
-            'LiveNotificationsLastRead': -1,
-            'LiveNotificationsLastReadId': -1,
-            'Locations': [],
-            'Notes': [],
-            'ProjectNotes': [],
-            'Projects': [],
-            'Reminders': [],
-            'Settings': {},
-            'SettingsNotifications': {},
-            'User': {},
-            'UserId': -1,
-            'WebStaticVersion': -1,
+            'collaborator_states': [],
+            'collaborators': [],
+            'day_orders': {},
+            'day_orders_timestamp': '',
+            'filters': [],
+            'items': [],
+            'labels': [],
+            'live_notifications': [],
+            'live_notifications_last_read_id': -1,
+            'locations': [],
+            'notes': [],
+            'project_notes': [],
+            'projects': [],
+            'reminders': [],
+            'settings': {},
+            'settings_notifications': {},
+            'user': {},
+            'web_static_version': -1,
         }
 
     def __getitem__(self, key):
@@ -96,7 +94,7 @@ class TodoistAPI(object):
         return {key: getattr(self, key) for key in self._serialize_fields}
 
     def get_api_url(self):
-        return '%s/API/v6/' % self.api_endpoint
+        return '%s/API/v7/' % self.api_endpoint
 
     def _update_state(self, syncdata):
         """
@@ -109,47 +107,42 @@ class TodoistAPI(object):
         # It is straightforward to update these type of data, since it is
         # enough to just see if they are present in the sync data, and then
         # either replace the local values or update them.
-        if 'Collaborators' in syncdata:
-            self.state['Collaborators'] = syncdata['Collaborators']
-        if 'CollaboratorStates' in syncdata:
-            self.state['CollaboratorStates'] = syncdata['CollaboratorStates']
-        if 'DayOrders' in syncdata:
-            self.state['DayOrders'].update(syncdata['DayOrders'])
-        if 'DayOrdersTimestamp' in syncdata:
-            self.state['DayOrdersTimestamp'] = syncdata['DayOrdersTimestamp']
-        if 'LiveNotificationsLastRead' in syncdata:
-            self.state['LiveNotificationsLastRead'] = \
-                syncdata['LiveNotificationsLastRead']
-        if 'LiveNotificationsLastReadId' in syncdata:
-            self.state['LiveNotificationsLastReadId'] = \
-                syncdata['LiveNotificationsLastReadId']
-        if 'Locations' in syncdata:
-            self.state['Locations'] = syncdata['Locations']
-        if 'Settings' in syncdata:
-            self.state['Settings'].update(syncdata['Settings'])
-        if 'SettingsNotifications' in syncdata:
-            self.state['SettingsNotifications'].\
-                update(syncdata['SettingsNotifications'])
-        if 'User' in syncdata:
-            self.state['User'].update(syncdata['User'])
-        if 'UserId' in syncdata:
-            self.state['UserId'] = syncdata['UserId']
-        if 'WebStaticVersion' in syncdata:
-            self.state['WebStaticVersion'] = syncdata['WebStaticVersion']
+        if 'collaborators' in syncdata:
+            self.state['collaborators'] = syncdata['collaborators']
+        if 'collaborator_states' in syncdata:
+            self.state['collaborator_states'] = syncdata['collaborator_states']
+        if 'day_orders' in syncdata:
+            self.state['day_orders'].update(syncdata['day_orders'])
+        if 'day_orders_timestamp' in syncdata:
+            self.state['day_orders_timestamp'] = syncdata['day_orders_timestamp']
+        if 'live_notifications_last_read_id' in syncdata:
+            self.state['live_notifications_last_read_id'] = \
+                syncdata['live_notifications_last_read_id']
+        if 'locations' in syncdata:
+            self.state['locations'] = syncdata['locations']
+        if 'settings' in syncdata:
+            self.state['settings'].update(syncdata['settings'])
+        if 'settings_notifications' in syncdata:
+            self.state['settings_notifications'].\
+                update(syncdata['settings_notifications'])
+        if 'user' in syncdata:
+            self.state['user'].update(syncdata['user'])
+        if 'web_static_version' in syncdata:
+            self.state['web_static_version'] = syncdata['web_static_version']
 
         # Updating these type of data is a bit more complicated, since it is
         # necessary to find out whether an object in the sync data is new,
         # updates an existing object, or marks an object to be deleted.  But
         # the same procedure takes place for each of these types of data.
         resp_models_mapping = [
-            ('Filters', models.Filter),
-            ('Items', models.Item),
-            ('Labels', models.Label),
-            ('LiveNotifications', models.LiveNotification),
-            ('Notes', models.Note),
-            ('ProjectNotes', models.ProjectNote),
-            ('Projects', models.Project),
-            ('Reminders', models.Reminder),
+            ('filters', models.Filter),
+            ('items', models.Item),
+            ('labels', models.Label),
+            ('live_notifications', models.LiveNotification),
+            ('notes', models.Note),
+            ('project_notes', models.ProjectNote),
+            ('projects', models.Project),
+            ('reminders', models.Reminder),
         ]
         for datatype, model in resp_models_mapping:
             if datatype not in syncdata:
@@ -182,26 +175,26 @@ class TodoistAPI(object):
         object, and then on its primary key is.  If the object is found it is
         returned, and if not, then None is returned.
         """
-        if objtype == 'Collaborators':
+        if objtype == 'collaborators':
             return self.collaborators.get_by_id(obj['id'])
-        elif objtype == 'CollaboratorStates':
+        elif objtype == 'collaborator_states':
             return self.collaborator_states.get_by_ids(obj['project_id'],
                                                        obj['user_id'])
-        elif objtype == 'Filters':
+        elif objtype == 'filters':
             return self.filters.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'Items':
+        elif objtype == 'items':
             return self.items.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'Labels':
+        elif objtype == 'labels':
             return self.labels.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'LiveNotifications':
+        elif objtype == 'live_notifications':
             return self.live_notifications.get_by_key(obj['notification_key'])
-        elif objtype == 'Notes':
+        elif objtype == 'notes':
             return self.notes.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'ProjectNotes':
+        elif objtype == 'project_notes':
             return self.project_notes.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'Projects':
+        elif objtype == 'projects':
             return self.projects.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'Reminders':
+        elif objtype == 'reminders':
             return self.reminders.get_by_id(obj['id'], only_local=True)
         else:
             return None
@@ -214,8 +207,8 @@ class TodoistAPI(object):
         """
         # Go through all the objects for which we expect the temporary id to be
         # replaced by a real one.
-        for datatype in ['Filters', 'Items', 'Labels', 'Notes', 'ProjectNotes',
-                         'Projects', 'Reminders']:
+        for datatype in ['filters', 'items', 'labels', 'notes', 'project_notes',
+                         'projects', 'reminders']:
             for obj in self.state[datatype]:
                 if obj.temp_id == temp_id:
                     obj['id'] = new_id
@@ -268,14 +261,14 @@ class TodoistAPI(object):
         post_data = {
             'token': self.token,
             'sync_token': self.sync_token,
-            'day_orders_timestamp': self.state['DayOrdersTimestamp'],
+            'day_orders_timestamp': self.state['day_orders_timestamp'],
             'include_notification_settings': 1,
             'resource_types': json_dumps(['all']),
             'commands': json_dumps(commands or []),
         }
         response = self._post('sync', data=post_data)
-        if 'TempIdMapping' in response:
-            for temp_id, new_id in response['TempIdMapping'].items():
+        if 'temp_id_mapping' in response:
+            for temp_id, new_id in response['temp_id_mapping'].items():
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
         self._update_state(response)
@@ -292,9 +285,9 @@ class TodoistAPI(object):
             return
         ret = self.sync(commands=self.queue)
         del self.queue[:]
-        if 'SyncStatus' in ret:
+        if 'sync_status' in ret:
             if raise_on_error:
-                for k, v in ret['SyncStatus'].items():
+                for k, v in ret['sync_status'].items():
                     if v != 'ok':
                         raise SyncError(k, v)
         return ret
@@ -492,11 +485,11 @@ class TodoistAPI(object):
         obj = self._get('get_project', params=params)
         if obj and 'error' in obj:
             return None
-        data = {'Projects': [], 'ProjectNotes': []}
+        data = {'projects': [], 'project_notes': []}
         if obj.get('project'):
-            data['Projects'].append(obj.get('project'))
+            data['projects'].append(obj.get('project'))
         if obj.get('notes'):
-            data['ProjectNotes'] += obj.get('notes')
+            data['project_notes'] += obj.get('notes')
         self._update_state(data)
         return obj
 
@@ -509,13 +502,13 @@ class TodoistAPI(object):
         obj = self._get('get_item', params=params)
         if obj and 'error' in obj:
             return None
-        data = {'Projects': [], 'Items': [], 'Notes': []}
+        data = {'projects': [], 'items': [], 'notes': []}
         if obj.get('project'):
-            data['Projects'].append(obj.get('project'))
+            data['projects'].append(obj.get('project'))
         if obj.get('item'):
-            data['Items'].append(obj.get('item'))
+            data['items'].append(obj.get('item'))
         if obj.get('notes'):
-            data['Notes'] += obj.get('notes')
+            data['notes'] += obj.get('notes')
         self._update_state(data)
         return obj
 
@@ -528,9 +521,9 @@ class TodoistAPI(object):
         obj = self._get('get_label', params=params)
         if obj and 'error' in obj:
             return None
-        data = {'Labels': []}
+        data = {'labels': []}
         if obj.get('label'):
-            data['Labels'].append(obj.get('label'))
+            data['labels'].append(obj.get('label'))
         self._update_state(data)
         return obj
 
@@ -543,9 +536,9 @@ class TodoistAPI(object):
         obj = self._get('get_note', params=params)
         if obj and 'error' in obj:
             return None
-        data = {'Notes': []}
+        data = {'notes': []}
         if obj.get('note'):
-            data['Notes'].append(obj.get('note'))
+            data['notes'].append(obj.get('note'))
         self._update_state(data)
         return obj
 
@@ -558,9 +551,9 @@ class TodoistAPI(object):
         obj = self._get('get_filter', params=params)
         if obj and 'error' in obj:
             return None
-        data = {'Filters': []}
+        data = {'filters': []}
         if obj.get('filter'):
-            data['Filters'].append(obj.get('filter'))
+            data['filters'].append(obj.get('filter'))
         self._update_state(data)
         return obj
 
@@ -573,9 +566,9 @@ class TodoistAPI(object):
         obj = self._get('get_reminder', params=params)
         if obj and 'error' in obj:
             return None
-        data = {'Reminders': []}
+        data = {'reminders': []}
         if obj.get('reminder'):
-            data['Reminders'].append(obj.get('reminder'))
+            data['reminders'].append(obj.get('reminder'))
         self._update_state(data)
         return obj
 

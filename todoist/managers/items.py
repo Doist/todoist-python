@@ -5,7 +5,7 @@ from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
-    state_name = 'Items'
+    state_name = 'items'
     object_type = 'item'
 
     def add(self, content, project_id, **kwargs):

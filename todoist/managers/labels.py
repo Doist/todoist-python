@@ -5,7 +5,7 @@ from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
-    state_name = 'Labels'
+    state_name = 'labels'
     object_type = 'label'
 
     def add(self, name, **kwargs):

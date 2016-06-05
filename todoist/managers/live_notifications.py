@@ -4,7 +4,7 @@ from .generic import Manager, AllMixin, SyncMixin
 
 class LiveNotificationsManager(Manager, AllMixin, SyncMixin):
 
-    state_name = 'LiveNotifications'
+    state_name = 'live_notifications'
     object_type = 'live_notification'
 
     def get_by_key(self, notification_key):

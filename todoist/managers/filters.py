@@ -5,7 +5,7 @@ from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
-    state_name = 'Filters'
+    state_name = 'filters'
     object_type = 'filter'
 
     def add(self, name, query, **kwargs):

@@ -5,7 +5,7 @@ from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
 
 class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
-    state_name = 'Projects'
+    state_name = 'projects'
     object_type = 'project'
 
     def add(self, name, **kwargs):

@@ -30,10 +30,10 @@ class UserManager(Manager):
         return self.api.sync()
 
     def get(self, key=None, default=None):
-        ret = self.state['User']
+        ret = self.state['user']
         if key is not None:
             ret = ret.get(key, default)
         return ret
 
     def get_id(self):
-        return self.state['UserId']
+        return self.state['user']['id']

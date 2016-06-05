@@ -4,7 +4,7 @@ from .generic import Manager, GetByIdMixin, SyncMixin
 
 class CollaboratorsManager(Manager, GetByIdMixin, SyncMixin):
 
-    state_name = 'Collaborators'
+    state_name = 'collaborators'
     object_type = None  # there is no object type associated
 
     def get_by_id(self, user_id):
