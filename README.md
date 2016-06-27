@@ -48,7 +48,7 @@ $ python
 >>> user = api.login('john.doe@gmail.com', 'secret')
 >>> print(user['full_name'])
 John Doe
->>> response = api.sync(resource_types=['all'])
+>>> response = api.sync()
 >>> for project in response['Projects']:
 ...     print(project['name'])
 ...
