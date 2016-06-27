@@ -400,6 +400,13 @@ class TodoistAPI(object):
         params.update(kwargs)
         return self._get('get_completed_items', params=params)
 
+    def get_archived_projects(self):
+        """
+        Returns a project's completed items.
+        """
+        params = {'token': self.token}
+        return self._get('projects/get_archived', params=params)
+
     def get_uploads(self, **kwargs):
         """
         Returns all user's uploads.
