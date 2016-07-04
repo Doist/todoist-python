@@ -31,7 +31,6 @@ class TodoistAPI(object):
     """
     _serialize_fields = ('token', 'api_endpoint', 'sync_token', 'state', 'temp_ids')
 
-
     @classmethod
     def deserialize(cls, data):
         obj = cls()
@@ -244,7 +243,6 @@ class TodoistAPI(object):
             return response.json()
         except ValueError:
             return response.text
-
 
     # Sync
     def generate_uuid(self):
@@ -610,6 +608,15 @@ class TodoistAPI(object):
         data.update(kwargs)
         return self._post('templates/export_as_url', self.get_api_url(),
                           data=data)
+
+    # Activity
+    def activity_get(self, **kwargs):
+        """
+        Get events from the activity log.
+        """
+        params = {'token': self.token}
+        params.update(kwargs)
+        return self._get('activity/get', params=params)
 
     # Business
     def business_users_invite(self, email_list):
