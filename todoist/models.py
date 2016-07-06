@@ -22,6 +22,13 @@ class Model(object):
         return '%s(%s)' % (classname, formatted_dict)
 
 
+class CollaboratorState(Model):
+    """
+    Implements a collaborator state.
+    """
+    pass
+
+
 class Filter(Model):
     """
     Implements a filter.

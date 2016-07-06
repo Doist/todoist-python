@@ -80,10 +80,8 @@ class TodoistAPI(object):
             'project_notes': [],
             'projects': [],
             'reminders': [],
-            'settings': {},
             'settings_notifications': {},
             'user': {},
-            'web_static_version': -1,
         }
 
     def __getitem__(self, key):
@@ -107,33 +105,26 @@ class TodoistAPI(object):
         # enough to just see if they are present in the sync data, and then
         # either replace the local values or update them.
         if 'collaborators' in syncdata:
-            self.state['collaborators'] = syncdata['collaborators']
-        if 'collaborator_states' in syncdata:
-            self.state['collaborator_states'] = syncdata['collaborator_states']
+            self.state['collaborators'].append(syncdata['collaborators'])
         if 'day_orders' in syncdata:
             self.state['day_orders'].update(syncdata['day_orders'])
         if 'day_orders_timestamp' in syncdata:
             self.state['day_orders_timestamp'] = syncdata['day_orders_timestamp']
         if 'live_notifications_last_read_id' in syncdata:
-            self.state['live_notifications_last_read_id'] = \
-                syncdata['live_notifications_last_read_id']
+            self.state['live_notifications_last_read_id'] = syncdata['live_notifications_last_read_id']
         if 'locations' in syncdata:
             self.state['locations'] = syncdata['locations']
-        if 'settings' in syncdata:
-            self.state['settings'].update(syncdata['settings'])
         if 'settings_notifications' in syncdata:
-            self.state['settings_notifications'].\
-                update(syncdata['settings_notifications'])
+            self.state['settings_notifications'].update(syncdata['settings_notifications'])
         if 'user' in syncdata:
             self.state['user'].update(syncdata['user'])
-        if 'web_static_version' in syncdata:
-            self.state['web_static_version'] = syncdata['web_static_version']
 
         # Updating these type of data is a bit more complicated, since it is
         # necessary to find out whether an object in the sync data is new,
         # updates an existing object, or marks an object to be deleted.  But
         # the same procedure takes place for each of these types of data.
         resp_models_mapping = [
+            ('collaborator_states', models.CollaboratorState),
             ('filters', models.Filter),
             ('items', models.Item),
             ('labels', models.Label),
@@ -156,7 +147,8 @@ class TodoistAPI(object):
                     # If the object is already present in the local state, then
                     # we either update it, or if marked as to be deleted, we
                     # remove it.
-                    if remoteobj.get('is_deleted', 0) == 0:
+                    is_deleted = remoteobj.get('is_deleted', 0)
+                    if is_deleted == 0 or is_deleted is False:
                         localobj.data.update(remoteobj)
                     else:
                         self.state[datatype].remove(localobj)
@@ -164,7 +156,8 @@ class TodoistAPI(object):
                     # If not, then the object is new and it should be added,
                     # unless it is marked as to be deleted (in which case it's
                     # ignored).
-                    if remoteobj.get('is_deleted', 0) == 0:
+                    is_deleted = remoteobj.get('is_deleted', 0)
+                    if is_deleted == 0 or is_deleted is False:
                         newobj = model(remoteobj, self)
                         self.state[datatype].append(newobj)
 
