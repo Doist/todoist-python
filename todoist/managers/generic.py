@@ -34,7 +34,7 @@ class GetByIdMixin(object):
             if obj['id'] == obj_id or obj.temp_id == str(obj_id):
                 return obj
 
-        if not only_local:
+        if not only_local and self.object_type is not None:
             getter = getattr(self.api, 'get_%s' % self.object_type)
             return getter(obj_id)
 
