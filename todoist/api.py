@@ -170,8 +170,7 @@ class TodoistAPI(object):
         if objtype == 'collaborators':
             return self.collaborators.get_by_id(obj['id'])
         elif objtype == 'collaborator_states':
-            return self.collaborator_states.get_by_ids(obj['project_id'],
-                                                       obj['user_id'])
+            return self.collaborator_states.get_by_ids(obj['project_id'], obj['user_id'])
         elif objtype == 'filters':
             return self.filters.get_by_id(obj['id'], only_local=True)
         elif objtype == 'items':
@@ -179,7 +178,7 @@ class TodoistAPI(object):
         elif objtype == 'labels':
             return self.labels.get_by_id(obj['id'], only_local=True)
         elif objtype == 'live_notifications':
-            return self.live_notifications.get_by_key(obj['notification_key'])
+            return self.live_notifications.get_by_id(obj['id'])
         elif objtype == 'notes':
             return self.notes.get_by_id(obj['id'], only_local=True)
         elif objtype == 'project_notes':
