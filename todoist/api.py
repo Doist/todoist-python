@@ -104,8 +104,6 @@ class TodoistAPI(object):
         # It is straightforward to update these type of data, since it is
         # enough to just see if they are present in the sync data, and then
         # either replace the local values or update them.
-        if 'collaborators' in syncdata:
-            self.state['collaborators'].append(syncdata['collaborators'])
         if 'day_orders' in syncdata:
             self.state['day_orders'].update(syncdata['day_orders'])
         if 'day_orders_timestamp' in syncdata:
@@ -124,6 +122,7 @@ class TodoistAPI(object):
         # updates an existing object, or marks an object to be deleted.  But
         # the same procedure takes place for each of these types of data.
         resp_models_mapping = [
+            ('collaborator', models.Collaborator),
             ('collaborator_states', models.CollaboratorState),
             ('filters', models.Filter),
             ('items', models.Item),
