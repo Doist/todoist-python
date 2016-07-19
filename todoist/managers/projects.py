@@ -99,3 +99,31 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             },
         }
         self.queue.append(cmd)
+
+    def share(self, project_id, email, message=''):
+        """
+        Shares a project with a user.
+        """
+        cmd = {
+            'type': 'share_project',
+            'temp_id': self.api.generate_uuid(),
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'project_id': project_id,
+                'email': email,
+            },
+        }
+        self.queue.append(cmd)
+
+    def take_ownership(self, project_id):
+        """
+        Takes ownership of a shared project.
+        """
+        cmd = {
+            'type': 'take_ownership',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'project_id': project_id,
+            },
+        }
+        self.queue.append(cmd)

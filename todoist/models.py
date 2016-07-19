@@ -26,7 +26,11 @@ class Collaborator(Model):
     """
     Implements a collaborator.
     """
-    pass
+    def delete(self, project_id):
+        """
+        Deletes a collaborator from a shared project.
+        """
+        self.api.collaborators.delete(project_id, self['email'])
 
 
 class CollaboratorState(Model):
@@ -224,6 +228,18 @@ class Project(Model):
         """
         self.api.projects.unarchive(self['id'])
         self.data['is_archived'] = 0
+
+    def share(self, email, message=''):
+        """
+        Shares projects with a user.
+        """
+        self.api.projects.share(self['id'], email, message)
+
+    def take_ownership(self):
+        """
+        Takes ownership of a shared project.
+        """
+        self.api.projects.take_ownership(self['id'])
 
 
 class Reminder(Model):

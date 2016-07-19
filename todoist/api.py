@@ -434,51 +434,6 @@ class TodoistAPI(object):
         params.update(kwargs)
         return self._get('add_item', params=params)
 
-    # Sharing
-    def share_project(self, project_id, email, message='', **kwargs):
-        """
-        Appends a request to the queue, to share a project with a user.
-        """
-        cmd = {
-            'type': 'share_project',
-            'temp_id': self.generate_uuid(),
-            'uuid': self.generate_uuid(),
-            'args': {
-                'project_id': project_id,
-                'email': email,
-            },
-        }
-        cmd['args'].update(kwargs)
-        self.queue.append(cmd)
-
-    def delete_collaborator(self, project_id, email):
-        """
-        Appends a request to the queue, to delete a collaborator from a shared
-        project.
-        """
-        cmd = {
-            'type': 'delete_collaborator',
-            'uuid': self.generate_uuid(),
-            'args': {
-                'project_id': project_id,
-                'email': email,
-            },
-        }
-        self.queue.append(cmd)
-
-    def take_ownership(self, project_id):
-        """
-        Appends a request to the queue, take ownership of a shared project.
-        """
-        cmd = {
-            'type': 'take_ownership',
-            'uuid': self.generate_uuid(),
-            'args': {
-                'project_id': project_id,
-            },
-        }
-        self.queue.append(cmd)
-
     # Auxiliary
     def get_project(self, project_id):
         """

@@ -635,7 +635,7 @@ def test_share(api_token, api_token2):
     project1 = api.projects.add('Project1')
     api.commit()
 
-    api.share_project(project1['id'], api2.state['user']['email'])
+    api.projects.share(project1['id'], api2.state['user']['email'])
     response = api.commit()
     assert response['projects'][0]['name'] == project1['name']
     assert response['projects'][0]['shared']
@@ -669,14 +669,15 @@ def test_share(api_token, api_token2):
     # ownership
     project1 = [p for p in api2.state['projects']
                 if p['name'] == 'Project1'][0]
-    api2.take_ownership(project1['id'])
+    api2.projects.take_ownership(project1['id'])
+    print(api2.queue)
     api2.commit()
 
     project1 = [p for p in api.state['projects'] if p['name'] == 'Project1'][0]
-    api.take_ownership(project1['id'])
+    api.projects.take_ownership(project1['id'])
     api.commit()
 
-    api.delete_collaborator(project1['id'], api2.state['user']['email'])
+    api.collaborators.delete(project1['id'], api2.state['user']['email'])
     api.commit()
 
     project1 = [p for p in api.state['projects'] if p['name'] == 'Project1'][0]
@@ -687,7 +688,7 @@ def test_share(api_token, api_token2):
     project2 = api.projects.add('Project2')
     api.commit()
 
-    api.share_project(project2['id'], api2.state['user']['email'])
+    api.projects.share(project2['id'], api2.state['user']['email'])
     response = api.commit()
     assert response['projects'][0]['name'] == project2['name']
     assert response['projects'][0]['shared']
@@ -723,7 +724,7 @@ def test_share(api_token, api_token2):
     project3 = api.projects.add('Project3')
     api.commit()
 
-    api.share_project(project3['id'], api2.state['user']['email'])
+    api.projects.share(project3['id'], api2.state['user']['email'])
     response = api.commit()
     assert response['projects'][0]['name'] == project3['name']
     assert response['projects'][0]['shared']
