@@ -10,8 +10,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def add(self, content, project_id, **kwargs):
         """
-        Creates a local item object, by appending the equivalent request to the
-        queue.
+        Creates a local item object.
         """
         obj = models.Item({'content': content, 'project_id': project_id},
                           self.api)
@@ -29,8 +28,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update(self, item_id, **kwargs):
         """
-        Updates an item remotely, by appending the equivalent request to the
-        queue.
+        Updates an item remotely.
         """
         args = {'id': item_id}
         args.update(kwargs)
@@ -43,8 +41,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, item_ids):
         """
-        Deletes items remotely, by appending the equivalent request to the
-        queue.
+        Deletes items remotely.
         """
         cmd = {
             'type': 'item_delete',
@@ -57,8 +54,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def move(self, project_items, to_project):
         """
-        Moves items to another project remotely, by appending the equivalent
-        request to the queue.
+        Moves items to another project remotely.
         """
         cmd = {
             'type': 'item_move',
@@ -85,8 +81,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def complete(self, item_ids, force_history=0):
         """
-        Marks items as completed remotely, by appending the equivalent request to the
-        queue.
+        Marks items as completed remotely.
         """
         cmd = {
             'type': 'item_complete',
@@ -100,8 +95,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def uncomplete(self, item_ids, update_item_orders=1, restore_state=None):
         """
-        Marks items as not completed remotely, by appending the equivalent request to the
-        queue.
+        Marks items as not completed remotely.
         """
         args = {
             'ids': item_ids,
@@ -119,8 +113,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
     def update_date_complete(self, item_id, new_date_utc=None, date_string=None,
                              is_forward=None):
         """
-        Completes a recurring task remotely, by appending the equivalent
-        request to the queue.
+        Completes a recurring task remotely.
         """
         args = {
             'id': item_id,
@@ -140,8 +133,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update_orders_indents(self, ids_to_orders_indents):
         """
-        Updates the order and indents of multiple items remotely, by appending
-        the equivalent request to the queue.
+        Updates the order and indents of multiple items remotely.
         """
         cmd = {
             'type': 'item_update_orders_indents',
@@ -154,8 +146,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update_day_orders(self, ids_to_orders):
         """
-        Updates in the local state the day orders of multiple items remotely,
-        by appending the equivalent request to the queue.
+        Updates in the local state the day orders of multiple items remotely.
         """
         cmd = {
             'type': 'item_update_day_orders',

@@ -9,8 +9,7 @@ class GenericNotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update(self, note_id, **kwargs):
         """
-        Updates an note remotely, by appending the equivalent request to the
-        queue.
+        Updates an note remotely.
         """
         args = {'id': note_id}
         args.update(kwargs)
@@ -23,8 +22,7 @@ class GenericNotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, note_id):
         """
-        Deletes an note remotely, by appending the equivalent request to the
-        queue.
+        Deletes an note remotely.
         """
         cmd = {
             'type': 'note_delete',
@@ -42,8 +40,7 @@ class NotesManager(GenericNotesManager):
 
     def add(self, item_id, content, **kwargs):
         """
-        Creates a local item note object, and appends the equivalent request to
-        the queue.
+        Creates a local item note object.
         """
         obj = models.Note({'item_id': item_id, 'content': content}, self.api)
         obj.temp_id = obj['id'] = self.api.generate_uuid()
@@ -65,8 +62,7 @@ class ProjectNotesManager(GenericNotesManager):
 
     def add(self, project_id, content, **kwargs):
         """
-        Creates a local project note object, and appends the equivalent request
-        to the queue.
+        Creates a local project note object.
         """
         obj = models.ProjectNote({'project_id': project_id, 'content': content},
                                  self.api)

@@ -9,8 +9,7 @@ class InvitationsManager(Manager, SyncMixin):
 
     def accept(self, invitation_id, invitation_secret):
         """
-        Appends a request to the queue, to accept an invitation to share a
-        project.
+        Accepts an invitation to share a project.
         """
         cmd = {
             'type': 'accept_invitation',
@@ -24,8 +23,7 @@ class InvitationsManager(Manager, SyncMixin):
 
     def reject(self, invitation_id, invitation_secret):
         """
-        Appends a request to the queue, to reject an invitation to share a
-        project.
+        Rejets an invitation to share a project.
         """
         cmd = {
             'type': 'reject_invitation',
@@ -39,8 +37,7 @@ class InvitationsManager(Manager, SyncMixin):
 
     def delete(self, invitation_id):
         """
-        Appends a request to the queue, to delete an invitation to share a
-        project.
+        Delete an invitation to share a project.
         """
         cmd = {
             'type': 'delete_invitation',

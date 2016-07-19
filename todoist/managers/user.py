@@ -6,7 +6,7 @@ class UserManager(Manager):
 
     def update(self, **kwargs):
         """
-        Updates the user data, by appending the equivalent request to the queue.
+        Updates the user data.
         """
         cmd = {
             'type': 'user_update',
@@ -17,7 +17,7 @@ class UserManager(Manager):
 
     def update_goals(self, **kwargs):
         """
-        Update the user's karma goals.
+        Updates the user's karma goals.
         """
         cmd = {
             'type': 'update_goals',

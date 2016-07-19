@@ -10,8 +10,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def add(self, name, **kwargs):
         """
-        Creates a local project object, and appends the equivalent request to
-        the queue.
+        Creates a local project object.
         """
         obj = models.Project({'name': name}, self.api)
         obj.temp_id = obj['id'] = '$' + self.api.generate_uuid()
@@ -28,8 +27,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update(self, project_id, **kwargs):
         """
-        Updates a project remotely, by appending the equivalent request to the
-        queue.
+        Updates a project remotely.
         """
         obj = self.get_by_id(project_id)
         if obj:
@@ -46,8 +44,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, project_ids):
         """
-        Deletes a project remotely, by appending the equivalent request to the
-        queue.
+        Deletes a project remotely.
         """
         cmd = {
             'type': 'project_delete',
@@ -60,8 +57,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def archive(self, project_id):
         """
-        Marks project as archived remotely, by appending the equivalent request
-        to the queue.
+        Marks project as archived remotely.
         """
         cmd = {
             'type': 'project_archive',
@@ -74,8 +70,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def unarchive(self, project_id):
         """
-        Marks project as not archived remotely, by appending the equivalent
-        request to the queue.
+        Marks project as not archived remotely.
         """
         cmd = {
             'type': 'project_unarchive',
@@ -88,8 +83,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update_orders_indents(self, ids_to_orders_indents):
         """
-        Updates the orders and indents of multiple projects remotely, appending
-        the equivalent request to the queue.
+        Updates the orders and indents of multiple projects remotely.
         """
         cmd = {
             'type': 'project_update_orders_indents',

@@ -46,14 +46,14 @@ class Filter(Model):
     """
     def update(self, **kwargs):
         """
-        Updates filter, and appends the equivalent request to the queue.
+        Updates filter.
         """
         self.api.filters.update(self['id'], **kwargs)
         self.data.update(kwargs)
 
     def delete(self):
         """
-        Deletes filter, and appends the equivalent request to the queue.
+        Deletes filter.
         """
         self.api.filters.delete(self['id'])
         self.data['is_deleted'] = 1
@@ -65,22 +65,21 @@ class Item(Model):
     """
     def update(self, **kwargs):
         """
-        Updates item, and appends the equivalent request to the queue.
+        Updates item.
         """
         self.api.items.update(self['id'], **kwargs)
         self.data.update(kwargs)
 
     def delete(self):
         """
-        Deletes item, and appends the equivalent request to the queue.
+        Deletes item.
         """
         self.api.items.delete([self['id']])
         self.data['is_deleted'] = 1
 
     def move(self, to_project):
         """
-        Moves item to another project, and appends the equivalent request to
-        the queue.
+        Moves item to another project.
         """
         self.api.items.move({self['project_id']: [self['id']]}, to_project)
         self.data['project_id'] = to_project
@@ -93,8 +92,7 @@ class Item(Model):
 
     def complete(self, force_history=0):
         """
-        Marks item as completed, and appends the equivalent request to the
-        queue.
+        Marks item as completed.
         """
         self.api.items.complete([self['id']], force_history)
         self.data['checked'] = 1
@@ -102,8 +100,7 @@ class Item(Model):
 
     def uncomplete(self, update_item_orders=1, restore_state=None):
         """
-        Marks item as not completed, and appends the equivalent request to the
-        queue.
+        Marks item as not completed.
         """
         self.api.items.uncomplete([self['id']], update_item_orders,
                                   restore_state)
@@ -118,8 +115,7 @@ class Item(Model):
     def update_date_complete(self, new_date_utc=None, date_string=None,
                              is_forward=None):
         """
-        Completes a recurring task, and appends the equivalent request to the
-        queue.
+        Completes a recurring task.
         """
         self.api.items.update_date_complete(self['id'], new_date_utc,
                                             date_string, is_forward)
@@ -135,14 +131,14 @@ class Label(Model):
     """
     def update(self, **kwargs):
         """
-        Updates label, and appends the equivalent request to the queue.
+        Updates label.
         """
         self.api.labels.update(self['id'], **kwargs)
         self.data.update(kwargs)
 
     def delete(self):
         """
-        Deletes label, and appends the equivalent request to the queue.
+        Deletes label.
         """
         self.api.labels.delete(self['id'])
         self.data['is_deleted'] = 1
@@ -164,14 +160,14 @@ class GenericNote(Model):
 
     def update(self, **kwargs):
         """
-        Updates note, and appends the equivalent request to the queue.
+        Updates note.
         """
         self.local_manager.update(self['id'], **kwargs)
         self.data.update(kwargs)
 
     def delete(self):
         """
-        Deletes note, and appends the equivalent request to the queue.
+        Deletes note.
         """
         self.local_manager.delete(self['id'])
         self.data['is_deleted'] = 1
@@ -201,30 +197,28 @@ class Project(Model):
     """
     def update(self, **kwargs):
         """
-        Updates project, and appends the equivalent request to the queue.
+        Updates project.
         """
         self.api.projects.update(self['id'], **kwargs)
         self.data.update(kwargs)
 
     def delete(self):
         """
-        Deletes project, and appends the equivalent request to the queue.
+        Deletes project.
         """
         self.api.projects.delete([self['id']])
         self.data['is_deleted'] = 1
 
     def archive(self):
         """
-        Marks project as archived, and appends the equivalent request to the
-        queue.
+        Marks project as archived.
         """
         self.api.projects.archive(self['id'])
         self.data['is_archived'] = 1
 
     def unarchive(self):
         """
-        Marks project as not archived, and appends the equivalent request to
-        the queue.
+        Marks project as not archived.
         """
         self.api.projects.unarchive(self['id'])
         self.data['is_archived'] = 0
@@ -248,14 +242,14 @@ class Reminder(Model):
     """
     def update(self, **kwargs):
         """
-        Updates reminder, and appends the equivalent request to the queue.
+        Updates reminder.
         """
         self.api.reminders.update(self['id'], **kwargs)
         self.data.update(kwargs)
 
     def delete(self):
         """
-        Deletes reminder, and appends the equivalent request to the queue.
+        Deletes reminder.
         """
         self.api.reminders.delete(self['id'])
         self.data['is_deleted'] = 1

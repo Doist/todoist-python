@@ -9,8 +9,7 @@ class BizInvitationsManager(Manager):
 
     def accept(self, invitation_id, invitation_secret):
         """
-        Appends a request to the queue, to accept a business invitation to
-        share a project.
+        Accepts a business invitation to share a project.
         """
         cmd = {
             'type': 'biz_accept_invitation',
@@ -24,8 +23,7 @@ class BizInvitationsManager(Manager):
 
     def reject(self, invitation_id, invitation_secret):
         """
-        Appends a request to the queue, to reject a business invitation to
-        share a project.
+        Rejects a business invitation to share a project.
         """
         cmd = {
             'type': 'biz_reject_invitation',

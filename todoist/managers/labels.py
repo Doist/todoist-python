@@ -10,8 +10,7 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def add(self, name, **kwargs):
         """
-        Creates a local label object, and appends the equivalent request to the
-        queue.
+        Creates a local label object.
         """
         obj = models.Label({'name': name}, self.api)
         obj.temp_id = obj['id'] = self.api.generate_uuid()
@@ -28,8 +27,7 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update(self, label_id, **kwargs):
         """
-        Updates a label remotely, by appending the equivalent request to the
-        queue.
+        Updates a label remotely.
         """
         args = {'id': label_id}
         args.update(kwargs)
@@ -42,8 +40,7 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, label_id):
         """
-        Deletes a label remotely, by appending the equivalent request to the
-        queue.
+        Deletes a label remotely.
         """
         cmd = {
             'type': 'label_delete',
@@ -56,8 +53,7 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update_orders(self, id_order_mapping):
         """
-        Updates the orders of multiple labels remotely, by appending the
-        equivalent request to the queue.
+        Updates the orders of multiple labels remotely.
         """
         cmd = {
             'type': 'label_update_orders',

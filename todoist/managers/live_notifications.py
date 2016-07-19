@@ -9,8 +9,7 @@ class LiveNotificationsManager(Manager, GetByIdMixin, AllMixin, SyncMixin):
 
     def set_last_read(self, id):
         """
-        Sets in the local state the last notification read, and appends the
-        equivalent request to the queue.
+        Sets in the local state the last notification read.
         """
         cmd = {
             'type': 'live_notifications_set_last_read',

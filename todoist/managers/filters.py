@@ -10,8 +10,7 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def add(self, name, query, **kwargs):
         """
-        Creates a local filter object, and appends the equivalent request to
-        the queue.
+        Creates a local filter object.
         """
         obj = models.Filter({'name': name, 'query': query}, self.api)
         obj.temp_id = obj['id'] = self.api.generate_uuid()
@@ -28,8 +27,7 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update(self, filter_id, **kwargs):
         """
-        Updates a filter remotely, by appending the equivalent request to the
-        queue.
+        Updates a filter remotely.
         """
         args = {'id': filter_id}
         args.update(kwargs)
@@ -42,8 +40,7 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, filter_id):
         """
-        Deletes a filter remotely, by appending the equivalent request to the
-        queue.
+        Deletes a filter remotely.
         """
         cmd = {
             'type': 'filter_delete',
@@ -56,8 +53,7 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update_orders(self, id_order_mapping):
         """
-        Updates the orders of multiple filters remotely, by appending the
-        equivalent request to the queue.
+        Updates the orders of multiple filters remotely.
         """
         cmd = {
             'type': 'filter_update_orders',
