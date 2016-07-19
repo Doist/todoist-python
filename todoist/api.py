@@ -392,10 +392,18 @@ class TodoistAPI(object):
 
     def get_archived_projects(self):
         """
-        Returns a project's completed items.
+        Returns archived projects.
         """
         params = {'token': self.token}
         return self._get('projects/get_archived', params=params)
+
+    def get_project_data(self, project_id):
+        """
+        Returns a project's uncompleted items.
+        """
+        params = {'token': self.token,
+                  'project_id': project_id}
+        return self._get('projects/get_data', params=params)
 
     def get_uploads(self, **kwargs):
         """
