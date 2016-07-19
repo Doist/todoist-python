@@ -1,3 +1,4 @@
+import io
 import time
 import datetime
 
@@ -759,9 +760,8 @@ def test_templates(api_token):
 
     template = api.export_template_as_file(project1['id'])
     assert 'task,Item1,4,1' in template
-    example = open('/tmp/example.csv', 'w')
-    example.write(template)
-    example.close()
+    with io.open('/tmp/example.csv', 'w', encoding='utf-8') as example:
+        example.write(template)
 
     result = api.import_template_into_project(project1['id'], '/tmp/example.csv')
     assert result == {'status': u'ok'}
