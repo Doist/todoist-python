@@ -109,19 +109,6 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def take_ownership(self, project_id):
-        """
-        Takes ownership of a shared project.
-        """
-        cmd = {
-            'type': 'take_ownership',
-            'uuid': self.api.generate_uuid(),
-            'args': {
-                'project_id': project_id,
-            },
-        }
-        self.queue.append(cmd)
-
     def get_archived(self):
         """
         Returns archived projects.
