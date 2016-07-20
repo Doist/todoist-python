@@ -63,3 +63,18 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             },
         }
         self.queue.append(cmd)
+
+    def get(self, label_id):
+        """
+        Gets an existing label.
+        """
+        params = {'token': self.token,
+                  'label_id': label_id}
+        obj = self.api._get('labels/get', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'labels': []}
+        if obj.get('label'):
+            data['labels'].append(obj.get('label'))
+        self.api._update_state(data)
+        return obj

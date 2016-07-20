@@ -36,7 +36,7 @@ def cleanup(api_token):
 def test_login(user_email, user_password, api_token):
     api = todoist.api.TodoistAPI()
     api.api_endpoint = 'http://local.todoist.com'
-    response = api.login(user_email, user_password)
+    response = api.user.login(user_email, user_password)
     assert 'api_token' in response
     assert response['api_token'] == api_token
     assert 'token' in response
@@ -54,26 +54,19 @@ def test_register():
     email = 'user' + now + '@example.org'
     full_name = 'User' + now
     password = 'pass' + now
-    response = api.register(email, full_name, password)
+    response = api.user.register(email, full_name, password)
     assert 'email' in response
     assert 'full_name' in response
     assert response['email'] == email
     assert response['full_name'] == full_name
-    response = api.delete_user(password)
+    response = api.user.delete(password)
     assert response == 'ok'
-
-
-def test_link(api_token):
-    api = todoist.api.TodoistAPI(api_token)
-    api.api_endpoint = 'http://local.todoist.com'
-    response = api.get_redirect_link()
-    assert 'link' in response
 
 
 def test_stats(api_token):
     api = todoist.api.TodoistAPI(api_token)
     api.api_endpoint = 'http://local.todoist.com'
-    response = api.get_productivity_stats()
+    response = api.completed.get_stats()
     assert 'days_items' in response
     assert 'week_items' in response
     assert 'karma_trend' in response
@@ -666,24 +659,6 @@ def test_share(api_token, api_token2):
         'share_invitation_accepted'
     assert response['projects'][0]['shared']
 
-    # ownership
-    project1 = [p for p in api2.state['projects']
-                if p['name'] == 'Project1'][0]
-    api2.projects.take_ownership(project1['id'])
-    print(api2.queue)
-    api2.commit()
-
-    project1 = [p for p in api.state['projects'] if p['name'] == 'Project1'][0]
-    api.projects.take_ownership(project1['id'])
-    api.commit()
-
-    api.collaborators.delete(project1['id'], api2.state['user']['email'])
-    api.commit()
-
-    project1 = [p for p in api.state['projects'] if p['name'] == 'Project1'][0]
-    project1.delete()
-    api.commit()
-
     # reject
     project2 = api.projects.add('Project2')
     api.commit()
@@ -759,12 +734,12 @@ def test_templates(api_token):
     item1 = api.items.add('Item1', project1['id'])
     api.commit()
 
-    template = api.export_template_as_file(project1['id'])
+    template = api.templates.export_as_file(project1['id'])
     assert 'task,Item1,4,1' in template
     with io.open('/tmp/example.csv', 'w', encoding='utf-8') as example:
         example.write(template)
 
-    result = api.import_template_into_project(project1['id'], '/tmp/example.csv')
+    result = api.templates.import_into_project(project1['id'], '/tmp/example.csv')
     assert result == {'status': u'ok'}
 
     item1.delete()

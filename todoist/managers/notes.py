@@ -55,6 +55,21 @@ class NotesManager(GenericNotesManager):
         self.queue.append(cmd)
         return obj
 
+    def get(self, note_id):
+        """
+        Gets an existing note.
+        """
+        params = {'token': self.token,
+                  'note_id': note_id}
+        obj = self.api._get('notes/get', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'notes': []}
+        if obj.get('note'):
+            data['notes'].append(obj.get('note'))
+        self.api._update_state(data)
+        return obj
+
 
 class ProjectNotesManager(GenericNotesManager):
 

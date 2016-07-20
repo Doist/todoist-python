@@ -18,6 +18,11 @@ from todoist.managers.locations import LocationsManager
 from todoist.managers.user import UserManager
 from todoist.managers.collaborators import CollaboratorsManager
 from todoist.managers.collaborator_states import CollaboratorStatesManager
+from todoist.managers.completed import CompletedManager
+from todoist.managers.uploads import UploadsManager
+from todoist.managers.activity import ActivityManager
+from todoist.managers.business_users import BusinessUsersManager
+from todoist.managers.templates import TemplatesManager
 
 
 class SyncError(Exception):
@@ -62,6 +67,12 @@ class TodoistAPI(object):
         self.user = UserManager(self)
         self.collaborators = CollaboratorsManager(self)
         self.collaborator_states = CollaboratorStatesManager(self)
+
+        self.completed = CompletedManager(self)
+        self.uploads = UploadsManager(self)
+        self.activity = ActivityManager(self)
+        self.business_users = BusinessUsersManager(self)
+        self.templates = TemplatesManager(self)
 
     def reset_state(self):
         self.sync_token = '*'
@@ -281,61 +292,7 @@ class TodoistAPI(object):
                         raise SyncError(k, v)
         return ret
 
-    # Authentication
-    def login(self, email, password):
-        """
-        Logins user, and returns the response received by the server.
-        """
-        data = self._post('login', data={'email': email,
-                                         'password': password})
-        if 'token' in data:
-            self.token = data['token']
-        return data
-
-    def login_with_google(self, email, oauth2_token, **kwargs):
-        """
-        Logins user with Google account, and returns the response received by
-        the server.
-
-        """
-        data = {'email': email, 'oauth2_token': oauth2_token}
-        data.update(kwargs)
-        data = self._post('login_with_google', data=data)
-        if 'token' in data:
-            self.token = data['token']
-        return data
-
-    # User
-    def register(self, email, full_name, password, **kwargs):
-        """
-        Registers a new user.
-        """
-        data = {'email': email, 'full_name': full_name, 'password': password}
-        data.update(kwargs)
-        data = self._post('register', data=data)
-        if 'token' in data:
-            self.token = data['token']
-        return data
-
-    def delete_user(self, current_password, **kwargs):
-        """
-        Deletes an existing user.
-        """
-        params = {'token': self.token,
-                  'current_password': current_password}
-        params.update(kwargs)
-        return self._get('delete_user', params=params)
-
     # Miscellaneous
-    def upload_file(self, filename, **kwargs):
-        """
-        Uploads a file.
-        """
-        data = {'token': self.token}
-        data.update(kwargs)
-        files = {'file': open(filename, 'rb')}
-        return self._post('upload_file', self.get_api_url(), data=data,
-                          files=files)
 
     def query(self, queries, **kwargs):
         """
@@ -346,85 +303,6 @@ class TodoistAPI(object):
         params.update(kwargs)
         return self._get('query', params=params)
 
-    def get_redirect_link(self, **kwargs):
-        """
-        Returns the absolute URL to redirect or to open in a browser.
-        """
-        params = {'token': self.token}
-        params.update(kwargs)
-        return self._get('get_redirect_link', params=params)
-
-    def get_productivity_stats(self):
-        """
-        Returns the user's recent productivity stats.
-        """
-        return self._get('get_productivity_stats',
-                         params={'token': self.token})
-
-    def update_notification_setting(self, notification_type, service,
-                                    dont_notify):
-        """
-        Updates the user's notification settings.
-        """
-        return self._post('update_notification_setting',
-                          data={'token': self.token,
-                                'notification_type': notification_type,
-                                'service': service,
-                                'dont_notify': dont_notify})
-
-    def get_all_completed_items(self, **kwargs):
-        """
-        Returns all user's completed items.
-        """
-        params = {'token': self.token}
-        params.update(kwargs)
-        return self._get('get_all_completed_items', params=params)
-
-    def get_completed_items(self, project_id, **kwargs):
-        """
-        Returns a project's completed items.
-        """
-        params = {'token': self.token,
-                  'project_id': project_id}
-        params.update(kwargs)
-        return self._get('get_completed_items', params=params)
-
-    def get_archived_projects(self):
-        """
-        Returns archived projects.
-        """
-        params = {'token': self.token}
-        return self._get('projects/get_archived', params=params)
-
-    def get_project_data(self, project_id):
-        """
-        Returns a project's uncompleted items.
-        """
-        params = {'token': self.token,
-                  'project_id': project_id}
-        return self._get('projects/get_data', params=params)
-
-    def get_uploads(self, **kwargs):
-        """
-        Returns all user's uploads.
-
-        kwargs:
-            limit: (int, optional) number of results (1-50)
-            last_id: (int, optional) return results with id<last_id
-        """
-        params = {'token': self.token}
-        params.update(kwargs)
-        return self._get('uploads/get', params=params)
-
-    def delete_upload(self, file_url):
-        """
-        Delete upload.
-
-        param file_url: (str) uploaded file URL
-        """
-        params = {'token': self.token, 'file_url': file_url}
-        return self._get('uploads/delete', params=params)
-
     def add_item(self, content, **kwargs):
         """
         Adds a new task.
@@ -433,171 +311,6 @@ class TodoistAPI(object):
                   'content': content}
         params.update(kwargs)
         return self._get('add_item', params=params)
-
-    # Auxiliary
-    def get_project(self, project_id):
-        """
-        Gets an existing project.
-        """
-        params = {'token': self.token,
-                  'project_id': project_id}
-        obj = self._get('get_project', params=params)
-        if obj and 'error' in obj:
-            return None
-        data = {'projects': [], 'project_notes': []}
-        if obj.get('project'):
-            data['projects'].append(obj.get('project'))
-        if obj.get('notes'):
-            data['project_notes'] += obj.get('notes')
-        self._update_state(data)
-        return obj
-
-    def get_item(self, item_id):
-        """
-        Gets an existing item.
-        """
-        params = {'token': self.token,
-                  'item_id': item_id}
-        obj = self._get('get_item', params=params)
-        if obj and 'error' in obj:
-            return None
-        data = {'projects': [], 'items': [], 'notes': []}
-        if obj.get('project'):
-            data['projects'].append(obj.get('project'))
-        if obj.get('item'):
-            data['items'].append(obj.get('item'))
-        if obj.get('notes'):
-            data['notes'] += obj.get('notes')
-        self._update_state(data)
-        return obj
-
-    def get_label(self, label_id):
-        """
-        Gets an existing label.
-        """
-        params = {'token': self.token,
-                  'label_id': label_id}
-        obj = self._get('get_label', params=params)
-        if obj and 'error' in obj:
-            return None
-        data = {'labels': []}
-        if obj.get('label'):
-            data['labels'].append(obj.get('label'))
-        self._update_state(data)
-        return obj
-
-    def get_note(self, note_id):
-        """
-        Gets an existing note.
-        """
-        params = {'token': self.token,
-                  'note_id': note_id}
-        obj = self._get('get_note', params=params)
-        if obj and 'error' in obj:
-            return None
-        data = {'notes': []}
-        if obj.get('note'):
-            data['notes'].append(obj.get('note'))
-        self._update_state(data)
-        return obj
-
-    def get_filter(self, filter_id):
-        """
-        Gets an existing filter.
-        """
-        params = {'token': self.token,
-                  'filter_id': filter_id}
-        obj = self._get('get_filter', params=params)
-        if obj and 'error' in obj:
-            return None
-        data = {'filters': []}
-        if obj.get('filter'):
-            data['filters'].append(obj.get('filter'))
-        self._update_state(data)
-        return obj
-
-    def get_reminder(self, reminder_id):
-        """
-        Gets an existing reminder.
-        """
-        params = {'token': self.token,
-                  'reminder_id': reminder_id}
-        obj = self._get('get_reminder', params=params)
-        if obj and 'error' in obj:
-            return None
-        data = {'reminders': []}
-        if obj.get('reminder'):
-            data['reminders'].append(obj.get('reminder'))
-        self._update_state(data)
-        return obj
-
-    # Templates
-    def import_template_into_project(self, project_id, filename, **kwargs):
-        """
-        Imports a template into a project.
-        """
-        data = {'token': self.token,
-                'project_id': project_id}
-        data.update(kwargs)
-        files = {'file': open(filename, 'r')}
-        return self._post('templates/import_into_project', self.get_api_url(),
-                          data=data, files=files)
-
-    def export_template_as_file(self, project_id, **kwargs):
-        """
-        Exports a template as a file.
-        """
-        data = {'token': self.token,
-                'project_id': project_id}
-        data.update(kwargs)
-        return self._post('templates/export_as_file', self.get_api_url(),
-                          data=data)
-
-    def export_template_as_url(self, project_id, **kwargs):
-        """
-        Exports a template as a URL.
-        """
-        data = {'token': self.token,
-                'project_id': project_id}
-        data.update(kwargs)
-        return self._post('templates/export_as_url', self.get_api_url(),
-                          data=data)
-
-    # Activity
-    def activity_get(self, **kwargs):
-        """
-        Get events from the activity log.
-        """
-        params = {'token': self.token}
-        params.update(kwargs)
-        return self._get('activity/get', params=params)
-
-    # Business
-    def business_users_invite(self, email_list):
-        """
-        Send a business user invitation.
-        """
-        params = {'token': self.token,
-                  'email_list': json.dumps(email_list)}
-        return self._get('business/users/invite', params=params)
-
-    def business_users_accept_invitation(self, id, secret):
-        """
-        Accept a business user invitation.
-        """
-        params = {'token': self.token,
-                  'id': id,
-                  'secret': secret}
-        return self._get('business/users/accept_invitation', params=params)
-
-    def business_users_reject_invitation(self, id, secret):
-        """
-        Reject a business user invitation.
-        """
-        params = {'token': self.token,
-                  'id': id,
-                  'secret': secret}
-        return self._get('business/users/reject_invitation', params=params)
 
     # Class
     def __repr__(self):

@@ -50,3 +50,18 @@ class RemindersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             },
         }
         self.queue.append(cmd)
+
+    def get(self, reminder_id):
+        """
+        Gets an existing reminder.
+        """
+        params = {'token': self.token,
+                  'reminder_id': reminder_id}
+        obj = self.api._get('reminders/get', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'reminders': []}
+        if obj.get('reminder'):
+            data['reminders'].append(obj.get('reminder'))
+        self.api._update_state(data)
+        return obj

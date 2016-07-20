@@ -156,3 +156,31 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             },
         }
         self.queue.append(cmd)
+
+    def get_completed(self, project_id, **kwargs):
+        """
+        Returns a project's completed items.
+        """
+        params = {'token': self.token,
+                  'project_id': project_id}
+        params.update(kwargs)
+        return self.api._get('items/get_completed', params=params)
+
+    def get(self, item_id):
+        """
+        Gets an existing item.
+        """
+        params = {'token': self.token,
+                  'item_id': item_id}
+        obj = self.api._get('items/get', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'projects': [], 'items': [], 'notes': []}
+        if obj.get('project'):
+            data['projects'].append(obj.get('project'))
+        if obj.get('item'):
+            data['items'].append(obj.get('item'))
+        if obj.get('notes'):
+            data['notes'] += obj.get('notes')
+        self.api._update_state(data)
+        return obj

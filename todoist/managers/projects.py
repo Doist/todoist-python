@@ -121,3 +121,35 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             },
         }
         self.queue.append(cmd)
+
+    def get_archived(self):
+        """
+        Returns archived projects.
+        """
+        params = {'token': self.token}
+        return self.api._get('projects/get_archived', params=params)
+
+    def get_data(self, project_id):
+        """
+        Returns a project's uncompleted items.
+        """
+        params = {'token': self.token,
+                  'project_id': project_id}
+        return self.api._get('projects/get_data', params=params)
+
+    def get(self, project_id):
+        """
+        Gets an existing project.
+        """
+        params = {'token': self.token,
+                  'project_id': project_id}
+        obj = self.api._get('project/get', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'projects': [], 'project_notes': []}
+        if obj.get('project'):
+            data['projects'].append(obj.get('project'))
+        if obj.get('notes'):
+            data['project_notes'] += obj.get('notes')
+        self.api._update_state(data)
+        return obj

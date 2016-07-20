@@ -9,7 +9,6 @@ class Manager(object):
         self.api = api
 
     # shortcuts
-
     @property
     def state(self):
         return self.api.state
@@ -18,6 +17,10 @@ class Manager(object):
     def queue(self):
         return self.api.queue
 
+    @property
+    def token(self):
+        return self.api.token
+
 
 class AllMixin(object):
     def all(self, filt=None):
@@ -25,7 +28,6 @@ class AllMixin(object):
 
 
 class GetByIdMixin(object):
-
     def get_by_id(self, obj_id, only_local=False):
         """
         Finds and returns the object based on its id.

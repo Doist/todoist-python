@@ -63,3 +63,18 @@ class FiltersManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             },
         }
         self.queue.append(cmd)
+
+    def get(self, filter_id):
+        """
+        Gets an existing filter.
+        """
+        params = {'token': self.token,
+                  'filter_id': filter_id}
+        obj = self.api._get('filters/get', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'filters': []}
+        if obj.get('filter'):
+            data['filters'].append(obj.get('filter'))
+        self.api._update_state(data)
+        return obj
