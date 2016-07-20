@@ -23,6 +23,7 @@ from todoist.managers.uploads import UploadsManager
 from todoist.managers.activity import ActivityManager
 from todoist.managers.business_users import BusinessUsersManager
 from todoist.managers.templates import TemplatesManager
+from todoist.managers.backups import BackupsManager
 
 
 class SyncError(Exception):
@@ -73,6 +74,7 @@ class TodoistAPI(object):
         self.activity = ActivityManager(self)
         self.business_users = BusinessUsersManager(self)
         self.templates = TemplatesManager(self)
+        self.backups = BackupsManager(self)
 
     def reset_state(self):
         self.sync_token = '*'
