@@ -20,7 +20,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             'type': 'project_add',
             'temp_id': obj.temp_id,
             'uuid': self.api.generate_uuid(),
-            'args': obj.data,
+            'args': {key: obj.data[key] for key in obj.data if key != 'id'}
         }
         self.queue.append(cmd)
         return obj
