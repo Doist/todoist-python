@@ -1,8 +1,9 @@
+import os
 import uuid
 import json
 import requests
 import datetime
-from functools import partial
+import functools
 
 from todoist import models
 from todoist.managers.biz_invitations import BizInvitationsManager
@@ -45,7 +46,11 @@ class TodoistAPI(object):
                 setattr(obj, key, data[key])
         return obj
 
-    def __init__(self, token='', api_endpoint='https://api.todoist.com', session=None):
+    def __init__(self,
+                 token='',
+                 api_endpoint='https://api.todoist.com',
+                 session=None,
+                 cache='~/.todoist-sync/'):
         self.api_endpoint = api_endpoint
         self.reset_state()
         self.token = token  # User's API token
@@ -75,6 +80,12 @@ class TodoistAPI(object):
         self.business_users = BusinessUsersManager(self)
         self.templates = TemplatesManager(self)
         self.backups = BackupsManager(self)
+
+        if cache:  # Read and write user state on local disk cache
+            self.cache = os.path.expanduser(cache)
+            self._read_cache()
+        else:
+            self.cache = None
 
     def reset_state(self):
         self.sync_token = '*'
@@ -112,7 +123,8 @@ class TodoistAPI(object):
         sync.
         """
         # Check sync token first
-        self.sync_token = syncdata['sync_token']
+        if 'sync_token' in syncdata:
+            self.sync_token = syncdata['sync_token']
 
         # It is straightforward to update these type of data, since it is
         # enough to just see if they are present in the sync data, and then
@@ -172,6 +184,37 @@ class TodoistAPI(object):
                     if is_deleted == 0 or is_deleted is False:
                         newobj = model(remoteobj, self)
                         self.state[datatype].append(newobj)
+
+    def _read_cache(self):
+        if not self.cache:
+            return
+
+        try:
+            os.makedirs(self.cache)
+        except OSError:
+            if not os.path.isdir(self.cache):
+                raise
+
+        try:
+            with open(self.cache + self.token + '.json') as f:
+                state = f.read()
+            state = json.loads(state)
+            self._update_state(state)
+
+            with open(self.cache + self.token + '.sync') as f:
+                sync_token = f.read()
+            self.sync_token = sync_token
+        except:
+            return
+
+    def _write_cache(self):
+        if not self.cache:
+            return
+        result = json.dumps(self.state, indent=2, sort_keys=True, default=state_default)
+        with open(self.cache + self.token + '.json', 'w') as f:
+            f.write(result)
+        with open(self.cache + self.token + '.sync', 'w') as f:
+            f.write(self.sync_token)
 
     def _find_object(self, objtype, obj):
         """
@@ -274,6 +317,7 @@ class TodoistAPI(object):
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
         self._update_state(response)
+        self._write_cache()
         return response
 
     def commit(self, raise_on_error=True):
@@ -323,6 +367,10 @@ class TodoistAPI(object):
         return '%s%s(%s)' % (name, unsaved, email_repr)
 
 
+def state_default(obj):
+    return obj.data
+
+
 def json_default(obj):
     if isinstance(obj, datetime.datetime):
         return obj.strftime('%Y-%m-%dT%H:%M:%S')
@@ -332,4 +380,4 @@ def json_default(obj):
         return obj.strftime('%H:%M:%S')
 
 
-json_dumps = partial(json.dumps, separators=',:', default=json_default)
+json_dumps = functools.partial(json.dumps, separators=',:', default=json_default)
