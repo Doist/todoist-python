@@ -1,4 +1,5 @@
 /.tox
+/.cache
 /doc/_build
 /pytest.ini
 /build
