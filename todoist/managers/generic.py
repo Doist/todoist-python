@@ -37,7 +37,7 @@ class GetByIdMixin(object):
                 return obj
 
         if not only_local and self.object_type is not None:
-            getter = getattr(self.api, 'get_%s' % self.object_type)
+            getter = getattr(self.api, '%s/get' % self.object_type)
             return getter(obj_id)
 
         return None
