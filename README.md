@@ -44,12 +44,12 @@ Import the library and try some commands:
 ```python
 $ python
 >>> import todoist
->>> api = todoist.TodoistAPI()
->>> user = api.login('john.doe@gmail.com', 'secret')
+>>> api_key = 'f00ff00ff00ff00ff00ff00ff00ff00ff00ff00f'
+>>> api = todoist.TodoistAPI(api_key)
 >>> print(user['full_name'])
 John Doe
 >>> response = api.sync()
->>> for project in response['Projects']:
+>>> for project in response['projects']:
 ...     print(project['name'])
 ...
 Personal
