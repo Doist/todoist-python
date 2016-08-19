@@ -49,7 +49,7 @@ $ python
 >>> print(user['full_name'])
 John Doe
 >>> response = api.sync()
->>> for project in response['Projects']:
+>>> for project in response['projects']:
 ...     print(project['name'])
 ...
 Personal
