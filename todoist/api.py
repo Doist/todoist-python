@@ -48,7 +48,7 @@ class TodoistAPI(object):
 
     def __init__(self,
                  token='',
-                 api_endpoint='https://api.todoist.com',
+                 api_endpoint='https://todoist.com',
                  session=None,
                  cache='~/.todoist-sync/'):
         self.api_endpoint = api_endpoint
