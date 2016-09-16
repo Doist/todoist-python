@@ -23,7 +23,7 @@ def user_email(request):
         email = request.config.getoption('--email')
     if not email:
         raise RuntimeError('User email not defined. Please use the '
-                           '--email commandline option, or the "token" '
+                           '--email commandline option, or the "email" '
                            'attribute in your pytest.ini')
     return email
 
@@ -35,7 +35,7 @@ def user_password(request):
         password = request.config.getoption('--password')
     if not password:
         raise RuntimeError('User password not defined. Please use the '
-                           '--password commandline option, or the "token" '
+                           '--password commandline option, or the "password" '
                            'attribute in your pytest.ini')
     return password
 
@@ -58,7 +58,7 @@ def user_email2(request):
         email2 = request.config.getoption('--email2')
     if not email2:
         raise RuntimeError('User email2 not defined. Please use the '
-                           '--email2 commandline option, or the "token" '
+                           '--email2 commandline option, or the "email2" '
                            'attribute in your pytest.ini')
     return email2
 
@@ -70,7 +70,7 @@ def user_password2(request):
         password2 = request.config.getoption('--password2')
     if not password2:
         raise RuntimeError('User password2 not defined. Please use the '
-                           '--password2 commandline option, or the "token" '
+                           '--password2 commandline option, or the "password2" '
                            'attribute in your pytest.ini')
     return password2
 
