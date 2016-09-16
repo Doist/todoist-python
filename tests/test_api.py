@@ -34,30 +34,6 @@ def cleanup(api_endpoint, api_token):
     api.commit()
 
 
-def test_login(api_endpoint, user_email, user_password, api_token):
-    api = todoist.api.TodoistAPI(api_token, api_endpoint)
-    response = api.user.login(user_email, user_password)
-    assert 'api_token' in response
-    assert response['api_token'] == api_token
-    assert 'token' in response
-    assert response['token'] == api_token
-
-
-def test_register(api_endpoint):
-    api = todoist.api.TodoistAPI(api_endpoint=api_endpoint)
-    now = str(int(time.time()))
-    email = 'user' + now + '@example.org'
-    full_name = 'User' + now
-    password = 'pass' + now
-    response = api.user.register(email, full_name, password)
-    assert 'email' in response
-    assert 'full_name' in response
-    assert response['email'] == email
-    assert response['full_name'] == full_name
-    response = api.user.delete(password)
-    assert response == 'ok'
-
-
 def test_stats(api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     response = api.completed.get_stats()
