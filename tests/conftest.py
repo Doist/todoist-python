@@ -2,6 +2,8 @@ import pytest
 
 
 def pytest_addoption(parser):
+    parser.addoption('--endpoint', help='Set up the test endpoint')
+    parser.addini('endpoint', help='Set up the test endpoint')
     parser.addoption('--email', help='Set up the user email')
     parser.addini('email', help='Set up the user email')
     parser.addoption('--password', help='Set up the user password')
@@ -14,6 +16,18 @@ def pytest_addoption(parser):
     parser.addini('password2', help='Set up another user password')
     parser.addoption('--token2', help='Set up another API token')
     parser.addini('token2', help='Set up another API token')
+
+
+@pytest.fixture
+def api_endpoint(request):
+    endpoint = request.config.getini('endpoint')
+    if not endpoint:
+        endpoint = request.config.getoption('--endpoint')
+    if not endpoint:
+        raise RuntimeError('Test endpoint not defined. Please use the '
+                           '--endpoint commandline option, or the "endpoint" '
+                           'attribute in your pytest.ini')
+    return endpoint
 
 
 @pytest.fixture

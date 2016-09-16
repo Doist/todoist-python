@@ -7,8 +7,8 @@ import todoist
 
 
 @pytest.fixture
-def cleanup(api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def cleanup(api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()
     for filter in api.state['filters'][:]:
         filter.delete()
@@ -34,8 +34,8 @@ def cleanup(api_token):
     api.commit()
 
 
-def test_login(user_email, user_password, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_login(api_endpoint, user_email, user_password, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
     response = api.user.login(user_email, user_password)
     assert 'api_token' in response
     assert response['api_token'] == api_token
@@ -43,8 +43,8 @@ def test_login(user_email, user_password, api_token):
     assert response['token'] == api_token
 
 
-def test_register():
-    api = todoist.api.TodoistAPI(api_endpoint='http://local.todoist.com')
+def test_register(api_endpoint):
+    api = todoist.api.TodoistAPI(api_endpoint=api_endpoint)
     now = str(int(time.time()))
     email = 'user' + now + '@example.org'
     full_name = 'User' + now
@@ -58,8 +58,8 @@ def test_register():
     assert response == 'ok'
 
 
-def test_stats(api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_stats(api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
     response = api.completed.get_stats()
     assert 'days_items' in response
     assert 'week_items' in response
@@ -67,8 +67,8 @@ def test_stats(api_token):
     assert 'karma_last_update' in response
 
 
-def test_query(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_query(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
     inbox = [p for p in api.state['projects'] if p['name'] == 'Inbox'][0]
@@ -90,8 +90,8 @@ def test_query(cleanup, api_token):
     api.commit()
 
 
-def test_user(api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_user(api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()
     date_format = api.state['user']['date_format']
     date_format_new = 1 - date_format
@@ -104,8 +104,8 @@ def test_user(api_token):
     api.commit()
 
 
-def test_project(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_project(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -182,8 +182,8 @@ def test_project(cleanup, api_token):
     assert 'UpdatedProject2' not in [p['name'] for p in api.state['projects']]
 
 
-def test_item(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_item(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -306,8 +306,8 @@ def test_item(cleanup, api_token):
     response = api.commit()
 
 
-def test_label(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_label(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -354,8 +354,8 @@ def test_label(cleanup, api_token):
     assert 'UpdatedLabel1' not in [l['name'] for l in api.state['labels']]
 
 
-def test_note(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_note(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -401,8 +401,8 @@ def test_note(cleanup, api_token):
     response = api.commit()
 
 
-def test_projectnote(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_projectnote(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -447,8 +447,8 @@ def test_projectnote(cleanup, api_token):
     response = api.commit()
 
 
-def test_filter(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_filter(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -495,8 +495,8 @@ def test_filter(cleanup, api_token):
     assert 'UpdatedFilter2' not in [f['name'] for f in api.state['filters']]
 
 
-def test_reminder(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_reminder(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -552,8 +552,8 @@ def test_reminder(cleanup, api_token):
     response = api.commit()
 
 
-def test_locations(api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_locations(api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -563,8 +563,8 @@ def test_locations(api_token):
     assert api.state['locations'] == []
 
 
-def test_live_notifications(api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_live_notifications(api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
@@ -574,10 +574,10 @@ def test_live_notifications(api_token):
         api.state['live_notifications_last_read_id']
 
 
-def test_share(cleanup, api_token, api_token2):
+def test_share(cleanup, api_endpoint, api_token, api_token2):
 
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
-    api2 = todoist.api.TodoistAPI(api_token2, 'http://local.todoist.com')
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api2 = todoist.api.TodoistAPI(api_token2, api_endpoint)
 
     api.sync()
     api2.sync()
@@ -663,8 +663,8 @@ def test_share(cleanup, api_token, api_token2):
     api.commit()
 
 
-def test_templates(cleanup, api_token):
-    api = todoist.api.TodoistAPI(api_token, 'http://local.todoist.com')
+def test_templates(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
     api.sync()
 
