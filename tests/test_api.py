@@ -230,7 +230,7 @@ def test_item(cleanup, api_endpoint, api_token):
     assert 'UpdatedItem1' in [i['content'] for i in api.state['items']]
     assert api.items.get_by_id(item1['id']) == item1
 
-    date_string = datetime.datetime(2038, 01, 19, 03, 14, 07)
+    date_string = datetime.datetime(2038, 1, 19, 3, 14, 7)
     item2 = api.items.add('Item2', inbox['id'], date_string=date_string)
     api.commit()
 
