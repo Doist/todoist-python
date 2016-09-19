@@ -1,37 +1,8 @@
 import io
 import time
 import datetime
-import pytest
 
 import todoist
-
-
-@pytest.fixture
-def cleanup(api_endpoint, api_token):
-    api = todoist.api.TodoistAPI(api_token, api_endpoint)
-    api.sync()
-    for filter in api.state['filters'][:]:
-        filter.delete()
-    api.commit()
-    for label in api.state['labels'][:]:
-        label.delete()
-    api.commit()
-    for reminder in api.state['reminders'][:]:
-        reminder.delete()
-    api.commit()
-    for note in api.state['notes'][:]:
-        note.delete()
-    api.commit()
-    for note in api.state['project_notes'][:]:
-        note.delete()
-    api.commit()
-    for item in api.state['items'][:]:
-        item.delete()
-    api.commit()
-    for project in api.state['projects'][:]:
-        if project['name'] != 'Inbox':
-            project.delete()
-    api.commit()
 
 
 def test_stats(api_endpoint, api_token):
