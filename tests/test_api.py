@@ -521,7 +521,7 @@ def test_live_notifications(api_endpoint, api_token):
         api.state['live_notifications_last_read_id']
 
 
-def test_share(cleanup, api_endpoint, api_token, api_token2):
+def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
 
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api2 = todoist.api.TodoistAPI(api_token2, api_endpoint)

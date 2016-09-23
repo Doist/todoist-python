@@ -74,3 +74,8 @@ def cleanup(api_endpoint, api_token):
         if project['name'] != 'Inbox':
             project.delete()
     api.commit()
+
+
+@pytest.fixture
+def cleanup2(api_endpoint, api_token2):
+    cleanup(api_endpoint, api_token2)
