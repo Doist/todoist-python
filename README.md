@@ -26,6 +26,10 @@ requests only):
 
     $ pip install -e .
 
+If you want to do testing, install some extra packages:
+
+    $ pip install -r tests/requirements.txt
+
 
 If you want to build the documentation as well, install some extra packages:
 
