@@ -356,6 +356,8 @@ class TodoistAPI(object):
         params = {'token': self.token,
                   'content': content}
         params.update(kwargs)
+        if 'labels' in params:
+            params['labels'] = str(params['labels'])
         return self._get('add_item', params=params)
 
     # Class
