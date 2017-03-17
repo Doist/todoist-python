@@ -25,6 +25,7 @@ from todoist.managers.activity import ActivityManager
 from todoist.managers.business_users import BusinessUsersManager
 from todoist.managers.templates import TemplatesManager
 from todoist.managers.backups import BackupsManager
+from todoist.managers.quick import QuickManager
 
 
 class SyncError(Exception):
@@ -80,6 +81,7 @@ class TodoistAPI(object):
         self.business_users = BusinessUsersManager(self)
         self.templates = TemplatesManager(self)
         self.backups = BackupsManager(self)
+        self.quick = QuickManager(self)
 
         if cache:  # Read and write user state on local disk cache
             self.cache = os.path.expanduser(cache)
