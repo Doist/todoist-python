@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name='todoist-python',
-    version='7.0.15',
+    version='7.0.16',
     packages=['todoist', 'todoist.managers'],
     author='Doist Team',
     author_email='info@todoist.com',
