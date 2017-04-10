@@ -130,7 +130,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         """
         params = {'token': self.token,
                   'project_id': project_id}
-        obj = self.api._get('project/get', params=params)
+        obj = self.api._get('projects/get', params=params)
         if obj and 'error' in obj:
             return None
         data = {'projects': [], 'project_notes': []}
