@@ -151,7 +151,7 @@ class TodoistAPI(object):
         # updates an existing object, or marks an object to be deleted.  But
         # the same procedure takes place for each of these types of data.
         resp_models_mapping = [
-            ('collaborator', models.Collaborator),
+            ('collaborators', models.Collaborator),
             ('collaborator_states', models.CollaboratorState),
             ('filters', models.Filter),
             ('items', models.Item),
