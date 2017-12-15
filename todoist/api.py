@@ -346,7 +346,8 @@ class TodoistAPI(object):
 
     def query(self, queries, **kwargs):
         """
-        Performs date queries and other searches, and returns the results.
+        DEPRECATED: query endpoint is deprecated for a long time and this
+        method will be removed in the next major version of todoist-python
         """
         params = {'queries': json_dumps(queries),
                   'token': self.token}
