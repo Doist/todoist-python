@@ -5,6 +5,8 @@ import requests
 import datetime
 import functools
 
+from cryptography.fernet import Fernet
+
 from todoist import models
 from todoist.managers.biz_invitations import BizInvitationsManager
 from todoist.managers.filters import FiltersManager
@@ -59,6 +61,7 @@ class TodoistAPI(object):
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
         self.session = session or requests.Session()  # Session instance for requests
+        self.encryption_key = None
 
         # managers
         self.projects = ProjectsManager(self)
@@ -201,8 +204,12 @@ class TodoistAPI(object):
 
         try:
             with open(self.cache + self.token + '.json') as f:
-                state = f.read()
-            state = json.loads(state)
+                encrypted_state = f.read()
+
+            # decrypt the state after reading from encrypted cache
+            fernet = Fernet(self.encryption_key)
+            state = json.loads(fernet.decrypt(encrypted_state))
+
             self._update_state(state)
 
             with open(self.cache + self.token + '.sync') as f:
@@ -214,9 +221,16 @@ class TodoistAPI(object):
     def _write_cache(self):
         if not self.cache:
             return
-        result = json.dumps(self.state, indent=2, sort_keys=True, default=state_default)
-        with open(self.cache + self.token + '.json', 'w') as f:
-            f.write(result)
+        state = json.dumps(self.state, indent=2, sort_keys=True, default=state_default)
+
+        if self.encryption_key is None:
+            self.encryption_key = Fernet.generate_key()
+
+        with open(self.cache + self.token + '.json', 'wb') as f:
+            # encrypt the state before saving the cache
+            fernet = Fernet(self.encryption_key)
+            encrypted_state = fernet.encrypt(state.encode())
+            f.write(encrypted_state)
         with open(self.cache + self.token + '.sync', 'w') as f:
             f.write(self.sync_token)
 
