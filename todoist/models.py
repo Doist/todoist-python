@@ -223,11 +223,11 @@ class Project(Model):
         self.api.projects.unarchive(self['id'])
         self.data['is_archived'] = 0
 
-    def share(self, email, message=''):
+    def share(self, email):
         """
         Shares projects with a user.
         """
-        self.api.projects.share(self['id'], email, message)
+        self.api.projects.share(self['id'], email)
 
     def take_ownership(self):
         """
