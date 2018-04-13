@@ -19,6 +19,7 @@ setup(
     long_description = read('README.md'),
     install_requires=[
         'requests',
+        'cryptography'
     ],
     # see here for complete list of classifiers
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers

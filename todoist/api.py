@@ -28,6 +28,8 @@ from todoist.managers.backups import BackupsManager
 from todoist.managers.quick import QuickManager
 from todoist.managers.emails import EmailsManager
 
+from cryptography.fernet import Fernet
+
 
 class SyncError(Exception):
     pass
@@ -59,6 +61,7 @@ class TodoistAPI(object):
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
         self.session = session or requests.Session()  # Session instance for requests
+        self.__encryption_key = Fernet.generate_key()
 
         # managers
         self.projects = ProjectsManager(self)
@@ -201,7 +204,8 @@ class TodoistAPI(object):
 
         try:
             with open(self.cache + self.token + '.json') as f:
-                state = f.read()
+                fernet = Fernet(self.__encryption_key)
+                state = fernet.decrypt(f.read()).decode()
             state = json.loads(state)
             self._update_state(state)
 
@@ -214,9 +218,11 @@ class TodoistAPI(object):
     def _write_cache(self):
         if not self.cache:
             return
-        result = json.dumps(self.state, indent=2, sort_keys=True, default=state_default)
-        with open(self.cache + self.token + '.json', 'w') as f:
-            f.write(result)
+        result = json.dumps(self.state, indent=2,
+                            sort_keys=True, default=state_default)
+        with open(self.cache + self.token + '.json', 'wb') as f:
+            fernet = Fernet(self.__encryption_key)
+            f.write(fernet.encrypt(result.encode()))
         with open(self.cache + self.token + '.sync', 'w') as f:
             f.write(self.sync_token)
 
