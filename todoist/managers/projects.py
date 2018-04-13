@@ -94,7 +94,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def share(self, project_id, email, message=''):
+    def share(self, project_id, email):
         """
         Shares a project with a user.
         """
