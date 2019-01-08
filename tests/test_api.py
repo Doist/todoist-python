@@ -67,13 +67,19 @@ def test_project(cleanup, api_endpoint, api_token):
     assert response['projects'][0]['name'] == 'Project1'
     assert response['projects'][0]['is_archived'] == 1
     assert 'Project1' in [p['name'] for p in api.state['projects']]
-    assert 1 in [p['is_archived'] for p in api.state['projects'] if p['id'] == project1['id']]
+    assert 1 in [
+        p['is_archived'] for p in api.state['projects']
+        if p['id'] == project1['id']
+    ]
 
     project1.unarchive()
     response = api.commit()
     assert response['projects'][0]['name'] == 'Project1'
     assert response['projects'][0]['is_archived'] == 0
-    assert 0 in [p['is_archived'] for p in api.state['projects'] if p['id'] == project1['id']]
+    assert 0 in [
+        p['is_archived'] for p in api.state['projects']
+        if p['id'] == project1['id']
+    ]
 
     project1.update(name='UpdatedProject1')
     response = api.commit()
@@ -84,8 +90,10 @@ def test_project(cleanup, api_endpoint, api_token):
     project2 = api.projects.add('Project2')
     response = api.commit()
     assert response['projects'][0]['name'] == 'Project2'
-    api.projects.update_orders_indents({project1['id']: [1, 2],
-                                       project2['id']: [2, 3]})
+    api.projects.update_orders_indents({
+        project1['id']: [1, 2],
+        project2['id']: [2, 3]
+    })
     response = api.commit()
     for project in response['projects']:
         if project['id'] == project1['id']:
@@ -94,10 +102,20 @@ def test_project(cleanup, api_endpoint, api_token):
         if project['id'] == project2['id']:
             assert project['item_order'] == 2
             assert project['indent'] == 3
-    assert 1 in [p['item_order'] for p in api.state['projects'] if p['id'] == project1['id']]
-    assert 2 in [p['indent'] for p in api.state['projects'] if p['id'] == project1['id']]
-    assert 2 in [p['item_order'] for p in api.state['projects'] if p['id'] == project2['id']]
-    assert 3 in [p['indent'] for p in api.state['projects'] if p['id'] == project2['id']]
+    assert 1 in [
+        p['item_order'] for p in api.state['projects']
+        if p['id'] == project1['id']
+    ]
+    assert 2 in [
+        p['indent'] for p in api.state['projects'] if p['id'] == project1['id']
+    ]
+    assert 2 in [
+        p['item_order'] for p in api.state['projects']
+        if p['id'] == project2['id']
+    ]
+    assert 3 in [
+        p['indent'] for p in api.state['projects'] if p['id'] == project2['id']
+    ]
 
     project1.delete()
     response = api.commit()
@@ -109,13 +127,19 @@ def test_project(cleanup, api_endpoint, api_token):
     response = api.commit()
     assert response['projects'][0]['name'] == 'Project2'
     assert response['projects'][0]['is_archived'] == 1
-    assert 1 in [p['is_archived'] for p in api.state['projects'] if p['id'] == project2['id']]
+    assert 1 in [
+        p['is_archived'] for p in api.state['projects']
+        if p['id'] == project2['id']
+    ]
 
     api.projects.unarchive(project2['id'])
     response = api.commit()
     assert response['projects'][0]['name'] == 'Project2'
     assert response['projects'][0]['is_archived'] == 0
-    assert 0 in [p['is_archived'] for p in api.state['projects'] if p['id'] == project2['id']]
+    assert 0 in [
+        p['is_archived'] for p in api.state['projects']
+        if p['id'] == project2['id']
+    ]
 
     api.projects.update(project2['id'], name='UpdatedProject2')
     response = api.commit()
@@ -154,13 +178,17 @@ def test_item(cleanup, api_endpoint, api_token):
     response = api.commit()
     assert response['items'][0]['content'] == 'Item1'
     assert response['items'][0]['checked'] == 1
-    assert 1 in [i['checked'] for i in api.state['items'] if i['id'] == item1['id']]
+    assert 1 in [
+        i['checked'] for i in api.state['items'] if i['id'] == item1['id']
+    ]
 
     item1.uncomplete()
     response = api.commit()
     assert response['items'][0]['content'] == 'Item1'
     assert response['items'][0]['checked'] == 0
-    assert 0 in [i['checked'] for i in api.state['items'] if i['id'] == item1['id']]
+    assert 0 in [
+        i['checked'] for i in api.state['items'] if i['id'] == item1['id']
+    ]
 
     project1 = api.projects.add('Project1')
     response = api.commit()
@@ -169,7 +197,9 @@ def test_item(cleanup, api_endpoint, api_token):
     response = api.commit()
     assert response['items'][0]['content'] == 'Item1'
     assert response['items'][0]['project_id'] == project1['id']
-    assert project1['id'] in [i['project_id'] for i in api.state['items'] if i['id'] == item1['id']]
+    assert project1['id'] in [
+        i['project_id'] for i in api.state['items'] if i['id'] == item1['id']
+    ]
 
     item1.update(content='UpdatedItem1')
     response = api.commit()
@@ -187,10 +217,11 @@ def test_item(cleanup, api_endpoint, api_token):
     api.items.update_date_complete(item1['id'], new_date_utc, 'every day', 0)
     response = api.commit()
     assert response['items'][0]['date_string'] == 'every day'
-    assert 'every day' in [i['date_string'] for i in api.state['items'] if i['id'] == item1['id']]
+    assert 'every day' in [
+        i['date_string'] for i in api.state['items'] if i['id'] == item1['id']
+    ]
 
-    api.items.update_orders_indents({item1['id']: [2, 2],
-                                    item2['id']: [1, 3]})
+    api.items.update_orders_indents({item1['id']: [2, 2], item2['id']: [1, 3]})
     response = api.commit()
     for item in response['items']:
         if item['id'] == item1['id']:
@@ -199,10 +230,18 @@ def test_item(cleanup, api_endpoint, api_token):
         if item['id'] == item2['id']:
             assert item['item_order'] == 1
             assert item['indent'] == 3
-    assert 2 in [i['item_order'] for i in api.state['items'] if i['id'] == item1['id']]
-    assert 2 in [i['indent'] for i in api.state['items'] if i['id'] == item1['id']]
-    assert 1 in [i['item_order'] for i in api.state['items'] if i['id'] == item2['id']]
-    assert 3 in [i['indent'] for i in api.state['items'] if i['id'] == item2['id']]
+    assert 2 in [
+        i['item_order'] for i in api.state['items'] if i['id'] == item1['id']
+    ]
+    assert 2 in [
+        i['indent'] for i in api.state['items'] if i['id'] == item1['id']
+    ]
+    assert 1 in [
+        i['item_order'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
+    assert 3 in [
+        i['indent'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
 
     api.items.update_day_orders({item1['id']: 1, item2['id']: 2})
     response = api.commit()
@@ -224,19 +263,25 @@ def test_item(cleanup, api_endpoint, api_token):
     response = api.commit()
     assert response['items'][0]['content'] == 'Item2'
     assert response['items'][0]['checked'] == 1
-    assert 1 in [i['checked'] for i in api.state['items'] if i['id'] == item2['id']]
+    assert 1 in [
+        i['checked'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
 
     api.items.uncomplete([item2['id']])
     response = api.commit()
     assert response['items'][0]['content'] == 'Item2'
     assert response['items'][0]['checked'] == 0
-    assert 0 in [i['checked'] for i in api.state['items'] if i['id'] == item2['id']]
+    assert 0 in [
+        i['checked'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
 
     api.items.move({item2['project_id']: [item2['id']]}, project1['id'])
     response = api.commit()
     assert response['items'][0]['content'] == 'Item2'
     assert response['items'][0]['project_id'] == project1['id']
-    assert project1['id'] in [i['project_id'] for i in api.state['items'] if i['id'] == item2['id']]
+    assert project1['id'] in [
+        i['project_id'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
 
     api.items.update(item2['id'], content='UpdatedItem2')
     response = api.commit()
@@ -280,8 +325,12 @@ def test_label(cleanup, api_endpoint, api_token):
             assert label['item_order'] == 1
         if label['id'] == label2['id']:
             assert label['item_order'] == 2
-    assert 1 in [l['item_order'] for l in api.state['labels'] if l['id'] == label1['id']]
-    assert 2 in [l['item_order'] for l in api.state['labels'] if l['id'] == label2['id']]
+    assert 1 in [
+        l['item_order'] for l in api.state['labels'] if l['id'] == label1['id']
+    ]
+    assert 2 in [
+        l['item_order'] for l in api.state['labels'] if l['id'] == label2['id']
+    ]
 
     label1.delete()
     response = api.commit()
@@ -372,7 +421,9 @@ def test_projectnote(cleanup, api_endpoint, api_token):
     response = api.commit()
     assert response['project_notes'][0]['id'] == note1['id']
     assert response['project_notes'][0]['is_deleted'] == 1
-    assert 'UpdatedNote1' not in [n['content'] for n in api.state['project_notes']]
+    assert 'UpdatedNote1' not in [
+        n['content'] for n in api.state['project_notes']
+    ]
 
     note2 = api.project_notes.add(project1['id'], 'Note2')
     response = api.commit()
@@ -388,7 +439,9 @@ def test_projectnote(cleanup, api_endpoint, api_token):
     response = api.commit()
     assert response['project_notes'][0]['id'] == note2['id']
     assert response['project_notes'][0]['is_deleted'] == 1
-    assert 'UpdatedNote2' not in [n['content'] for n in api.state['project_notes']]
+    assert 'UpdatedNote2' not in [
+        n['content'] for n in api.state['project_notes']
+    ]
 
     project1.delete()
     response = api.commit()
@@ -421,8 +474,14 @@ def test_filter(cleanup, api_endpoint, api_token):
             assert filter['item_order'] == 2
         if filter['id'] == filter2['id']:
             assert filter['item_order'] == 1
-    assert 2 in [f['item_order'] for f in api.state['filters'] if f['id'] == filter1['id']]
-    assert 1 in [f['item_order'] for f in api.state['filters'] if f['id'] == filter2['id']]
+    assert 2 in [
+        f['item_order'] for f in api.state['filters']
+        if f['id'] == filter1['id']
+    ]
+    assert 1 in [
+        f['item_order'] for f in api.state['filters']
+        if f['id'] == filter2['id']
+    ]
 
     filter1.delete()
     response = api.commit()
@@ -515,7 +574,8 @@ def test_live_notifications(api_endpoint, api_token):
 
     api.sync()
 
-    api.live_notifications.set_last_read(api.state['live_notifications_last_read_id'])
+    api.live_notifications.set_last_read(
+        api.state['live_notifications_last_read_id'])
     response = api.commit()
     assert response['live_notifications_last_read_id'] == \
         api.state['live_notifications_last_read_id']
@@ -539,14 +599,18 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     assert response['projects'][0]['shared']
 
     response2 = api2.sync()
-    invitation1 = [ln for ln in response2['live_notifications'] if 'invitation_id' in ln][0]
+    invitation1 = [
+        ln for ln in response2['live_notifications'] if 'invitation_id' in ln
+    ][0]
     assert invitation1['project_name'] == project1['name']
     assert invitation1['from_user']['email'] == api.state['user']['email']
 
     api2.invitations.accept(invitation1['invitation_id'],
                             invitation1['invitation_secret'])
     response2 = api2.commit()
-    invitation1resp = [ln for ln in response2['live_notifications'] if 'invitation_id' in ln][0]
+    invitation1resp = [
+        ln for ln in response2['live_notifications'] if 'invitation_id' in ln
+    ][0]
     assert invitation1resp['invitation_id'] == invitation1['invitation_id']
     assert invitation1resp['state'] == 'accepted'
     assert response2['projects'][0]['shared']
@@ -556,7 +620,9 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
         [p['user_id'] for p in response2['collaborator_states']]
 
     response = api.sync()
-    invitation1resp = [ln for ln in response['live_notifications'] if 'invitation_id' in ln][0]
+    invitation1resp = [
+        ln for ln in response['live_notifications'] if 'invitation_id' in ln
+    ][0]
     assert invitation1resp['invitation_id'] == invitation1['invitation_id']
     assert invitation1resp['notification_type'] == 'share_invitation_accepted'
     assert response['projects'][0]['shared']
@@ -571,7 +637,9 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     assert response['projects'][0]['shared']
 
     response2 = api2.sync()
-    invitation2 = [ln for ln in response2['live_notifications'] if 'invitation_id' in ln][0]
+    invitation2 = [
+        ln for ln in response2['live_notifications'] if 'invitation_id' in ln
+    ][0]
     assert invitation2['project_name'] == project2['name']
     assert invitation2['from_user']['email'] == api.state['user']['email']
 
@@ -598,7 +666,9 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     assert response['projects'][0]['shared']
 
     response2 = api2.sync()
-    invitation3 = [ln for ln in response2['live_notifications'] if 'invitation_id' in ln][0]
+    invitation3 = [
+        ln for ln in response2['live_notifications'] if 'invitation_id' in ln
+    ][0]
     assert invitation3['project_name'] == project3['name']
     assert invitation3['from_user']['email'] == api.state['user']['email']
 
@@ -627,7 +697,8 @@ def test_templates(cleanup, api_endpoint, api_token):
     with io.open('/tmp/example.csv', 'w', encoding='utf-8') as example:
         example.write(template)
 
-    result = api.templates.import_into_project(project1['id'], '/tmp/example.csv')
+    result = api.templates.import_into_project(project1['id'],
+                                               '/tmp/example.csv')
     assert result == {'status': u'ok'}
 
     item1.delete()

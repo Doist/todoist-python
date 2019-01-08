@@ -37,7 +37,7 @@ class GetByIdMixin(object):
                 return obj
 
         if not only_local and self.object_type is not None:
-            getter = getattr(eval('self.api.%ss' % self.object_type) , 'get')
+            getter = getattr(eval('self.api.%ss' % self.object_type), 'get')
             return getter(obj_id)
 
         return None
@@ -47,5 +47,6 @@ class SyncMixin(object):
     """
     Syncs this specific type of objects.
     """
+
     def sync(self):
         return self.api.sync()

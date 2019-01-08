@@ -38,7 +38,8 @@ class TodoistAPI(object):
     Implements the API that makes it possible to interact with a Todoist user
     account and its data.
     """
-    _serialize_fields = ('token', 'api_endpoint', 'sync_token', 'state', 'temp_ids')
+    _serialize_fields = ('token', 'api_endpoint', 'sync_token', 'state',
+                         'temp_ids')
 
     @classmethod
     def deserialize(cls, data):
@@ -58,7 +59,8 @@ class TodoistAPI(object):
         self.token = token  # User's API token
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
-        self.session = session or requests.Session()  # Session instance for requests
+        self.session = session or requests.Session(
+        )  # Session instance for requests
 
         # managers
         self.projects = ProjectsManager(self)
@@ -136,13 +138,16 @@ class TodoistAPI(object):
         if 'day_orders' in syncdata:
             self.state['day_orders'].update(syncdata['day_orders'])
         if 'day_orders_timestamp' in syncdata:
-            self.state['day_orders_timestamp'] = syncdata['day_orders_timestamp']
+            self.state['day_orders_timestamp'] = syncdata[
+                'day_orders_timestamp']
         if 'live_notifications_last_read_id' in syncdata:
-            self.state['live_notifications_last_read_id'] = syncdata['live_notifications_last_read_id']
+            self.state['live_notifications_last_read_id'] = syncdata[
+                'live_notifications_last_read_id']
         if 'locations' in syncdata:
             self.state['locations'] = syncdata['locations']
         if 'settings_notifications' in syncdata:
-            self.state['settings_notifications'].update(syncdata['settings_notifications'])
+            self.state['settings_notifications'].update(
+                syncdata['settings_notifications'])
         if 'user' in syncdata:
             self.state['user'].update(syncdata['user'])
 
@@ -214,7 +219,8 @@ class TodoistAPI(object):
     def _write_cache(self):
         if not self.cache:
             return
-        result = json.dumps(self.state, indent=2, sort_keys=True, default=state_default)
+        result = json.dumps(
+            self.state, indent=2, sort_keys=True, default=state_default)
         with open(self.cache + self.token + '.json', 'w') as f:
             f.write(result)
         with open(self.cache + self.token + '.sync', 'w') as f:
@@ -229,7 +235,8 @@ class TodoistAPI(object):
         if objtype == 'collaborators':
             return self.collaborators.get_by_id(obj['id'])
         elif objtype == 'collaborator_states':
-            return self.collaborator_states.get_by_ids(obj['project_id'], obj['user_id'])
+            return self.collaborator_states.get_by_ids(obj['project_id'],
+                                                       obj['user_id'])
         elif objtype == 'filters':
             return self.filters.get_by_id(obj['id'], only_local=True)
         elif objtype == 'items':
@@ -257,8 +264,10 @@ class TodoistAPI(object):
         """
         # Go through all the objects for which we expect the temporary id to be
         # replaced by a real one.
-        for datatype in ['filters', 'items', 'labels', 'notes', 'project_notes',
-                         'projects', 'reminders']:
+        for datatype in [
+                'filters', 'items', 'labels', 'notes', 'project_notes',
+                'projects', 'reminders'
+        ]:
             for obj in self.state[datatype]:
                 if obj.temp_id == temp_id:
                     obj['id'] = new_id
@@ -349,8 +358,7 @@ class TodoistAPI(object):
         DEPRECATED: query endpoint is deprecated for a long time and this
         method will be removed in the next major version of todoist-python
         """
-        params = {'queries': json_dumps(queries),
-                  'token': self.token}
+        params = {'queries': json_dumps(queries), 'token': self.token}
         params.update(kwargs)
         return self._get('query', params=params)
 
@@ -358,8 +366,7 @@ class TodoistAPI(object):
         """
         Adds a new task.
         """
-        params = {'token': self.token,
-                  'content': content}
+        params = {'token': self.token, 'content': content}
         params.update(kwargs)
         if 'labels' in params:
             params['labels'] = str(params['labels'])
@@ -387,4 +394,5 @@ def json_default(obj):
         return obj.strftime('%H:%M:%S')
 
 
-json_dumps = functools.partial(json.dumps, separators=',:', default=json_default)
+json_dumps = functools.partial(
+    json.dumps, separators=',:', default=json_default)

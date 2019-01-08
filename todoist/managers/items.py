@@ -12,8 +12,10 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         """
         Creates a local item object.
         """
-        obj = models.Item({'content': content, 'project_id': project_id},
-                          self.api)
+        obj = models.Item({
+            'content': content,
+            'project_id': project_id
+        }, self.api)
         obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)
@@ -21,7 +23,8 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             'type': 'item_add',
             'temp_id': obj.temp_id,
             'uuid': self.api.generate_uuid(),
-            'args': {key: obj.data[key] for key in obj.data if key != 'id'}
+            'args': {key: obj.data[key]
+                     for key in obj.data if key != 'id'}
         }
         self.queue.append(cmd)
         return obj
@@ -110,7 +113,10 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def update_date_complete(self, item_id, new_date_utc=None, date_string=None,
+    def update_date_complete(self,
+                             item_id,
+                             new_date_utc=None,
+                             date_string=None,
                              is_forward=None):
         """
         Completes a recurring task remotely.
@@ -161,8 +167,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         """
         Returns a project's completed items.
         """
-        params = {'token': self.token,
-                  'project_id': project_id}
+        params = {'token': self.token, 'project_id': project_id}
         params.update(kwargs)
         return self.api._get('items/get_completed', params=params)
 
@@ -170,11 +175,11 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         """
         Gets an existing item.
         """
-        params = {'token': self.token,
-                  'item_id': item_id}
+        params = {'token': self.token, 'item_id': item_id}
         obj = self.api._get('items/get', params=params)
         if obj and 'error' in obj:
             return None
+
         data = {'projects': [], 'items': [], 'notes': []}
         if obj.get('project'):
             data['projects'].append(obj.get('project'))
