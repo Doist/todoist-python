@@ -50,6 +50,15 @@ def api_token2(request):
 
 @pytest.fixture
 def cleanup(api_endpoint, api_token):
+    _cleanup(api_endpoint, api_token)
+
+
+@pytest.fixture
+def cleanup2(api_endpoint, api_token2):
+    _cleanup(api_endpoint, api_token2)
+
+
+def _cleanup(api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()
     for filter in api.state['filters'][:]:
@@ -74,8 +83,3 @@ def cleanup(api_endpoint, api_token):
         if project['name'] != 'Inbox':
             project.delete()
     api.commit()
-
-
-@pytest.fixture
-def cleanup2(api_endpoint, api_token2):
-    cleanup(api_endpoint, api_token2)

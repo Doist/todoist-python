@@ -1,6 +1,6 @@
+import datetime
 import io
 import time
-import datetime
 
 import todoist
 
@@ -12,29 +12,6 @@ def test_stats(api_endpoint, api_token):
     assert 'week_items' in response
     assert 'karma_trend' in response
     assert 'karma_last_update' in response
-
-
-def test_query(cleanup, api_endpoint, api_token):
-    api = todoist.api.TodoistAPI(api_token, api_endpoint)
-
-    api.sync()
-    inbox = [p for p in api.state['projects'] if p['name'] == 'Inbox'][0]
-    item1 = api.items.add('Item1', inbox['id'], date_string='tomorrow')
-    item2 = api.items.add('Item2', inbox['id'], priority=4)
-    api.commit()
-
-    response = api.query(['tomorrow', 'p1'])
-    for query in response:
-        if query['query'] == 'tomorrow':
-            assert 'Item1' in [p['content'] for p in query['data']]
-            assert 'Item2' not in [p['content'] for p in query['data']]
-        if query['query'] == 'p1':
-            assert 'Item1' not in [p['content'] for p in query['data']]
-            assert 'Item2' in [p['content'] for p in query['data']]
-
-    item1.delete()
-    item2.delete()
-    api.commit()
 
 
 def test_user(api_endpoint, api_token):
@@ -507,7 +484,7 @@ def test_reminder(cleanup, api_endpoint, api_token):
     api.sync()
 
     inbox = [p for p in api.state['projects'] if p['name'] == 'Inbox'][0]
-    item1 = api.items.add('Item1', inbox['id'], date_string='tomorrow')
+    item1 = api.items.add('Item1', inbox['id'], date_string='tomorrow 5pm')
     api.commit()
 
     # relative
@@ -586,7 +563,12 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api2 = todoist.api.TodoistAPI(api_token2, api_endpoint)
 
+    api.user.update(auto_invite_disabled=1)
+    api.commit()
     api.sync()
+
+    api2.user.update(auto_invite_disabled=1)
+    api2.commit()
     api2.sync()
 
     # accept
@@ -599,33 +581,18 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     assert response['projects'][0]['shared']
 
     response2 = api2.sync()
-    invitation1 = [
-        ln for ln in response2['live_notifications'] if 'invitation_id' in ln
-    ][0]
+    invitation1 = next((ln for ln in response2['live_notifications']
+                        if ln['notification_type'] == 'share_invitation_sent'),
+                       None)
+    assert invitation1 is not None
     assert invitation1['project_name'] == project1['name']
     assert invitation1['from_user']['email'] == api.state['user']['email']
 
-    api2.invitations.accept(invitation1['invitation_id'],
+    api2.invitations.accept(invitation1['id'],
                             invitation1['invitation_secret'])
     response2 = api2.commit()
-    invitation1resp = [
-        ln for ln in response2['live_notifications'] if 'invitation_id' in ln
-    ][0]
-    assert invitation1resp['invitation_id'] == invitation1['invitation_id']
-    assert invitation1resp['state'] == 'accepted'
-    assert response2['projects'][0]['shared']
-    assert api.state['user']['id'] in \
-        [p['user_id'] for p in response2['collaborator_states']]
     assert api2.state['user']['id'] in \
-        [p['user_id'] for p in response2['collaborator_states']]
-
-    response = api.sync()
-    invitation1resp = [
-        ln for ln in response['live_notifications'] if 'invitation_id' in ln
-    ][0]
-    assert invitation1resp['invitation_id'] == invitation1['invitation_id']
-    assert invitation1resp['notification_type'] == 'share_invitation_accepted'
-    assert response['projects'][0]['shared']
+        [p['user_id'] for p in api2.state['collaborator_states']]
 
     # reject
     project2 = api.projects.add('Project2')
@@ -637,20 +604,18 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     assert response['projects'][0]['shared']
 
     response2 = api2.sync()
-    invitation2 = [
-        ln for ln in response2['live_notifications'] if 'invitation_id' in ln
-    ][0]
+    invitation2 = next((ln for ln in response2['live_notifications']
+                        if ln['notification_type'] == 'share_invitation_sent'),
+                       None)
+    assert invitation2 is not None
     assert invitation2['project_name'] == project2['name']
     assert invitation2['from_user']['email'] == api.state['user']['email']
 
-    api2.invitations.reject(invitation2['invitation_id'],
+    api2.invitations.reject(invitation2['id'],
                             invitation2['invitation_secret'])
     response2 = api2.commit()
     assert len(response2['projects']) == 0
     assert len(response2['collaborator_states']) == 0
-
-    response = api.sync()
-    assert not response['projects'][0]['shared']
 
     project2 = [p for p in api.state['projects'] if p['name'] == 'Project2'][0]
     project2.delete()
@@ -666,13 +631,14 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     assert response['projects'][0]['shared']
 
     response2 = api2.sync()
-    invitation3 = [
-        ln for ln in response2['live_notifications'] if 'invitation_id' in ln
-    ][0]
+    invitation3 = next((ln for ln in response2['live_notifications']
+                        if ln['notification_type'] == 'share_invitation_sent'),
+                       None)
+    assert invitation3 is not None
     assert invitation3['project_name'] == project3['name']
     assert invitation3['from_user']['email'] == api.state['user']['email']
 
-    api.invitations.delete(invitation3['invitation_id'])
+    api.invitations.delete(invitation3['id'])
     api.commit()
 
     project3 = [p for p in api.state['projects'] if p['name'] == 'Project3'][0]
