@@ -28,6 +28,19 @@ def test_user(api_endpoint, api_token):
     api.commit()
 
 
+def test_user_settings(api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+    reminder_email = api.state['user_settings']['reminder_email']
+    if reminder_email:
+        reminder_email = False
+    else:
+        reminder_email = True
+    api.user_settings.update(reminder_email=reminder_email)
+    api.commit()
+    assert reminder_email == api.state['user_settings']['reminder_email']
+
+
 def test_project(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
 

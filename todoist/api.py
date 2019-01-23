@@ -1,32 +1,34 @@
-import os
-import uuid
-import json
-import requests
 import datetime
 import functools
+import json
+import os
+import uuid
+
+import requests
 
 from todoist import models
+from todoist.managers.activity import ActivityManager
+from todoist.managers.backups import BackupsManager
 from todoist.managers.biz_invitations import BizInvitationsManager
+from todoist.managers.business_users import BusinessUsersManager
+from todoist.managers.collaborator_states import CollaboratorStatesManager
+from todoist.managers.collaborators import CollaboratorsManager
+from todoist.managers.completed import CompletedManager
+from todoist.managers.emails import EmailsManager
 from todoist.managers.filters import FiltersManager
 from todoist.managers.invitations import InvitationsManager
-from todoist.managers.live_notifications import LiveNotificationsManager
-from todoist.managers.notes import NotesManager, ProjectNotesManager
-from todoist.managers.projects import ProjectsManager
 from todoist.managers.items import ItemsManager
 from todoist.managers.labels import LabelsManager
-from todoist.managers.reminders import RemindersManager
+from todoist.managers.live_notifications import LiveNotificationsManager
 from todoist.managers.locations import LocationsManager
-from todoist.managers.user import UserManager
-from todoist.managers.collaborators import CollaboratorsManager
-from todoist.managers.collaborator_states import CollaboratorStatesManager
-from todoist.managers.completed import CompletedManager
-from todoist.managers.uploads import UploadsManager
-from todoist.managers.activity import ActivityManager
-from todoist.managers.business_users import BusinessUsersManager
-from todoist.managers.templates import TemplatesManager
-from todoist.managers.backups import BackupsManager
+from todoist.managers.notes import NotesManager, ProjectNotesManager
+from todoist.managers.projects import ProjectsManager
 from todoist.managers.quick import QuickManager
-from todoist.managers.emails import EmailsManager
+from todoist.managers.reminders import RemindersManager
+from todoist.managers.templates import TemplatesManager
+from todoist.managers.uploads import UploadsManager
+from todoist.managers.user import UserManager
+from todoist.managers.user_settings import UserSettingsManager
 
 
 class SyncError(Exception):
@@ -75,6 +77,7 @@ class TodoistAPI(object):
         self.invitations = InvitationsManager(self)
         self.biz_invitations = BizInvitationsManager(self)
         self.user = UserManager(self)
+        self.user_settings = UserSettingsManager(self)
         self.collaborators = CollaboratorsManager(self)
         self.collaborator_states = CollaboratorStatesManager(self)
 
@@ -112,6 +115,7 @@ class TodoistAPI(object):
             'reminders': [],
             'settings_notifications': {},
             'user': {},
+            'user_settings': {},
         }
 
     def __getitem__(self, key):
@@ -150,6 +154,8 @@ class TodoistAPI(object):
                 syncdata['settings_notifications'])
         if 'user' in syncdata:
             self.state['user'].update(syncdata['user'])
+        if 'user_settings' in syncdata:
+            self.state['user_settings'].update(syncdata['user_settings'])
 
         # Updating these type of data is a bit more complicated, since it is
         # necessary to find out whether an object in the sync data is new,
