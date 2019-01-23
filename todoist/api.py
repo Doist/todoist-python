@@ -121,7 +121,7 @@ class TodoistAPI(object):
         return {key: getattr(self, key) for key in self._serialize_fields}
 
     def get_api_url(self):
-        return '%s/API/v7/' % self.api_endpoint
+        return '%s/API/v8/' % self.api_endpoint
 
     def _update_state(self, syncdata):
         """
