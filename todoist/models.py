@@ -74,15 +74,21 @@ class Item(Model):
         """
         Deletes item.
         """
-        self.api.items.delete([self['id']])
+        self.api.items.delete(self['id'])
         self.data['is_deleted'] = 1
 
-    def move(self, to_project):
+    def move(self, **kwargs):
         """
-        Moves item to another project.
+        Moves item to another parent or project.
         """
-        self.api.items.move({self['project_id']: [self['id']]}, to_project)
-        self.data['project_id'] = to_project
+        if 'parent_id' in kwargs:
+            self.api.items.move(self['id'], parent_id=kwargs.get('parent_id'))
+            self.data['parent_id'] = kwargs.get('parent_id')
+        elif 'project_id' in kwargs:
+            self.api.items.move(self['id'], project_id=kwargs.get('project_id'))
+            self.data['project_id'] = kwargs.get('project_id')
+        else:
+            raise TypeError('move() takes one of parent_id or project_id arguments')
 
     def close(self):
         """
@@ -90,27 +96,33 @@ class Item(Model):
         """
         self.api.items.close(self['id'])
 
-    def complete(self, force_history=0):
+    def complete(self, date_completed=None):
         """
         Marks item as completed.
         """
-        self.api.items.complete([self['id']], force_history)
+        self.api.items.complete(self['id'], date_completed=date_completed)
         self.data['checked'] = 1
-        self.data['in_history'] = force_history
 
-    def uncomplete(self, update_item_orders=1, restore_state=None):
+    def uncomplete(self):
         """
-        Marks item as not completed.
+        Marks item as uncompleted.
         """
-        self.api.items.uncomplete([self['id']], update_item_orders,
-                                  restore_state)
+        self.api.items.uncomplete(self['id'])
         self.data['checked'] = 0
+
+    def archive(self):
+        """
+        Marks item as archived.
+        """
+        self.api.items.archive(self['id'])
+        self.data['in_history'] = 1
+
+    def unarchive(self):
+        """
+        Marks item as unarchived.
+        """
+        self.api.items.unarchive(self['id'])
         self.data['in_history'] = 0
-        if restore_state and self['id'] in restore_state:
-            self.data['in_history'] = restore_state[self['id']][0]
-            self.data['checked'] = restore_state[self['id']][1]
-            self.data['item_order'] = restore_state[self['id']][2]
-            self.data['indent'] = restore_state[self['id']][3]
 
     def update_date_complete(self, new_date_utc=None, date_string=None,
                              is_forward=None):
@@ -206,7 +218,7 @@ class Project(Model):
         """
         Deletes project.
         """
-        self.api.projects.delete([self['id']])
+        self.api.projects.delete(self['id'])
         self.data['is_deleted'] = 1
 
     def archive(self):
@@ -218,7 +230,7 @@ class Project(Model):
 
     def unarchive(self):
         """
-        Marks project as not archived.
+        Marks project as unarchived.
         """
         self.api.projects.unarchive(self['id'])
         self.data['is_archived'] = 0

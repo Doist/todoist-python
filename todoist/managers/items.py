@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
+from .generic import AllMixin, GetByIdMixin, Manager, SyncMixin
 
 
 class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
@@ -8,13 +8,16 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
     state_name = 'items'
     object_type = 'item'
 
-    def add(self, content, project_id, **kwargs):
+    def add(self, content, **kwargs):
         """
         Creates a local item object.
         """
+        project_id = kwargs.get('project_id')
+        if not project_id:
+            project_id = self.state['user']['inbox_project']
         obj = models.Item({
             'content': content,
-            'project_id': project_id
+            'project_id': project_id,
         }, self.api)
         obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
@@ -42,30 +45,36 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def delete(self, item_ids):
+    def delete(self, item_id):
         """
-        Deletes items remotely.
+        Delete items remotely.
         """
         cmd = {
             'type': 'item_delete',
             'uuid': self.api.generate_uuid(),
             'args': {
-                'ids': item_ids
+                'id': item_id
             }
         }
         self.queue.append(cmd)
 
-    def move(self, project_items, to_project):
+    def move(self, item_id, **kwargs):
         """
-        Moves items to another project remotely.
+        Moves item to another parent or project remotely.
         """
+        args = {
+            'id': item_id,
+        }
+        if 'parent_id' in kwargs:
+            args['parent_id'] = kwargs.get('parent_id')
+        elif 'project_id' in kwargs:
+            args['project_id'] = kwargs.get('project_id')
+        else:
+            raise TypeError('move() takes one of parent_id or project_id arguments')
         cmd = {
             'type': 'item_move',
             'uuid': self.api.generate_uuid(),
-            'args': {
-                'project_items': project_items,
-                'to_project': to_project,
-            },
+            'args': args
         }
         self.queue.append(cmd)
 
@@ -82,34 +91,58 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def complete(self, item_ids, force_history=0):
+    def complete(self, item_id, date_completed=None):
         """
-        Marks items as completed remotely.
+        Marks item as completed remotely.
         """
+        args = {
+            'id': item_id,
+        }
+        if date_completed:
+            args['date_completed'] = date_completed
         cmd = {
             'type': 'item_complete',
             'uuid': self.api.generate_uuid(),
+            'args': args,
+        }
+        self.queue.append(cmd)
+
+    def uncomplete(self, item_id):
+        """
+        Marks item as uncompleted remotely.
+        """
+        cmd = {
+            'type': 'item_uncomplete',
+            'uuid': self.api.generate_uuid(),
             'args': {
-                'ids': item_ids,
-                'force_history': force_history,
+                'id': item_id,
             },
         }
         self.queue.append(cmd)
 
-    def uncomplete(self, item_ids, update_item_orders=1, restore_state=None):
+    def archive(self, item_id):
         """
-        Marks items as not completed remotely.
+        Marks item as archived remotely.
         """
-        args = {
-            'ids': item_ids,
-            'update_item_orders': update_item_orders,
-        }
-        if restore_state:
-            args['restore_state'] = restore_state
         cmd = {
-            'type': 'item_uncomplete',
+            'type': 'item_archive',
             'uuid': self.api.generate_uuid(),
-            'args': args,
+            'args': {
+                'id': item_id,
+            },
+        }
+        self.queue.append(cmd)
+
+    def unarchive(self, item_id):
+        """
+        Marks item as unarchived remotely.
+        """
+        cmd = {
+            'type': 'item_unarchive',
+            'uuid': self.api.generate_uuid(),
+            'args': {
+                'id': item_id,
+            },
         }
         self.queue.append(cmd)
 
@@ -137,15 +170,15 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def update_orders_indents(self, ids_to_orders_indents):
+    def reorder(self, items):
         """
-        Updates the order and indents of multiple items remotely.
+        Updates the child_order of the specified items.
         """
         cmd = {
-            'type': 'item_update_orders_indents',
+            'type': 'item_reorder',
             'uuid': self.api.generate_uuid(),
             'args': {
-                'ids_to_orders_indents': ids_to_orders_indents,
+                'items': items,
             },
         }
         self.queue.append(cmd)

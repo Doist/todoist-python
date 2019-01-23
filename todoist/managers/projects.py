@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
+from .generic import AllMixin, GetByIdMixin, Manager, SyncMixin
 
 
 class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
@@ -42,7 +42,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def delete(self, project_ids):
+    def delete(self, project_id):
         """
         Deletes a project remotely.
         """
@@ -50,7 +50,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             'type': 'project_delete',
             'uuid': self.api.generate_uuid(),
             'args': {
-                'ids': project_ids,
+                'id': project_id,
             },
         }
         self.queue.append(cmd)
@@ -70,7 +70,7 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def unarchive(self, project_id):
         """
-        Marks project as not archived remotely.
+        Marks project as unarchived remotely.
         """
         cmd = {
             'type': 'project_unarchive',
@@ -81,15 +81,15 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
-    def update_orders_indents(self, ids_to_orders_indents):
+    def reorder(self, projects):
         """
-        Updates the orders and indents of multiple projects remotely.
+        Updates the child_order of the specified projects.
         """
         cmd = {
-            'type': 'project_update_orders_indents',
+            'type': 'project_reorder',
             'uuid': self.api.generate_uuid(),
             'args': {
-                'ids_to_orders_indents': ids_to_orders_indents,
+                'projects': projects,
             },
         }
         self.queue.append(cmd)
