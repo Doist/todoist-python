@@ -129,6 +129,30 @@ def test_project_unarchive(cleanup, api_endpoint, api_token):
     api.commit()
 
 
+def test_project_move_to_parent(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
+
+    project2 = api.projects.add('Project2')
+    api.commit()
+
+    project2.move(project1['id'])
+    response = api.commit()
+    assert response['projects'][0]['name'] == 'Project2'
+    assert response['projects'][0]['parent_id'] == project1['id']
+    assert project1['id'] in [
+        i['parent_id'] for i in api.state['projects'] if i['id'] == project2['id']
+    ]
+
+    project2.delete()
+    api.commit()
+    project1.delete()
+    api.commit()
+
+
 def test_project_reorder(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()

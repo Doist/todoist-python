@@ -81,6 +81,21 @@ class ProjectsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         }
         self.queue.append(cmd)
 
+    def move(self, project_id, parent_id):
+        """
+        Moves project to another parent.
+        """
+        args = {
+            'id': project_id,
+            'parent_id': parent_id,
+        }
+        cmd = {
+            'type': 'project_move',
+            'uuid': self.api.generate_uuid(),
+            'args': args
+        }
+        self.queue.append(cmd)
+
     def reorder(self, projects):
         """
         Updates the child_order of the specified projects.

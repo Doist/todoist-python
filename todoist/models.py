@@ -235,6 +235,12 @@ class Project(Model):
         self.api.projects.unarchive(self['id'])
         self.data['is_archived'] = 0
 
+    def move(self, parent_id):
+        """
+        Moves item to another parent.
+        """
+        self.api.projects.move(self['id'], parent_id)
+
     def share(self, email, message=''):
         """
         Shares projects with a user.
