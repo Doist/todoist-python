@@ -150,21 +150,15 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def update_date_complete(self,
                              item_id,
-                             new_date_utc=None,
-                             date_string=None,
-                             is_forward=None):
+                             due=None):
         """
         Completes a recurring task remotely.
         """
         args = {
             'id': item_id,
         }
-        if new_date_utc:
-            args['new_date_utc'] = new_date_utc
-        if date_string:
-            args['date_string'] = date_string
-        if is_forward:
-            args['is_forward'] = is_forward
+        if due:
+            args['due'] = due
         cmd = {
             'type': 'item_update_date_complete',
             'uuid': self.api.generate_uuid(),

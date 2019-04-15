@@ -390,7 +390,12 @@ def test_item_update_date_complete(cleanup, api_endpoint, api_token):
     now = time.time()
     tomorrow = time.gmtime(now + 24 * 3600)
     new_date_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", tomorrow)
-    api.items.update_date_complete(item1['id'], new_date_utc, 'every day', 0)
+    due = {
+        'date': new_date_utc,
+        'string': 'every day',
+        'is_forward': 0,
+    }
+    api.items.update_date_complete(item1['id'], due=due)
     response = api.commit()
     assert response['items'][0]['due']['string'] == 'every day'
     assert 'every day' in [
