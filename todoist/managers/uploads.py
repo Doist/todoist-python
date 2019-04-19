@@ -24,7 +24,7 @@ class UploadsManager(Manager):
         """
         params = {'token': self.token}
         params.update(kwargs)
-        return self.api.get('uploads/get', params=params)
+        return self.api._get('uploads/get', params=params)
 
     def delete(self, file_url):
         """
@@ -33,4 +33,4 @@ class UploadsManager(Manager):
         param file_url: (str) uploaded file URL
         """
         params = {'token': self.token, 'file_url': file_url}
-        return self.api.get('uploads/delete', params=params)
+        return self.api._get('uploads/delete', params=params)

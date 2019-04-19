@@ -1,11 +1,10 @@
-import datetime
 import io
 import time
 
 import todoist
 
 
-def test_stats(api_endpoint, api_token):
+def test_stats_get(api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     response = api.completed.get_stats()
     assert 'days_items' in response
@@ -14,7 +13,7 @@ def test_stats(api_endpoint, api_token):
     assert 'karma_last_update' in response
 
 
-def test_user(api_endpoint, api_token):
+def test_user_update(api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()
     date_format = api.state['user']['date_format']
@@ -28,9 +27,21 @@ def test_user(api_endpoint, api_token):
     api.commit()
 
 
-def test_project(cleanup, api_endpoint, api_token):
+def test_user_settings_update(api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+    reminder_email = api.state['user_settings']['reminder_email']
+    if reminder_email:
+        reminder_email = False
+    else:
+        reminder_email = True
+    api.user_settings.update(reminder_email=reminder_email)
+    api.commit()
+    assert reminder_email == api.state['user_settings']['reminder_email']
 
+
+def test_project_add(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()
 
     project1 = api.projects.add('Project1')
@@ -38,6 +49,48 @@ def test_project(cleanup, api_endpoint, api_token):
     assert response['projects'][0]['name'] == 'Project1'
     assert 'Project1' in [p['name'] for p in api.state['projects']]
     assert api.projects.get_by_id(project1['id']) == project1
+
+    project1.delete()
+    api.commit()
+
+
+def test_project_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
+
+    project1.delete()
+    response = api.commit()
+    assert response['projects'][0]['id'] == project1['id']
+    assert response['projects'][0]['is_deleted'] == 1
+    assert 'Project1' not in [p['name'] for p in api.state['projects']]
+
+
+def test_project_update(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
+
+    project1.update(name='UpdatedProject1')
+    response = api.commit()
+    assert response['projects'][0]['name'] == 'UpdatedProject1'
+    assert 'UpdatedProject1' in [p['name'] for p in api.state['projects']]
+    assert api.projects.get_by_id(project1['id']) == project1
+
+    project1.delete()
+    api.commit()
+
+
+def test_project_archive(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
 
     project1.archive()
     response = api.commit()
@@ -49,6 +102,20 @@ def test_project(cleanup, api_endpoint, api_token):
         if p['id'] == project1['id']
     ]
 
+    project1.delete()
+    api.commit()
+
+
+def test_project_unarchive(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
+
+    project1.archive()
+    api.commit()
+
     project1.unarchive()
     response = api.commit()
     assert response['projects'][0]['name'] == 'Project1'
@@ -58,81 +125,71 @@ def test_project(cleanup, api_endpoint, api_token):
         if p['id'] == project1['id']
     ]
 
-    project1.update(name='UpdatedProject1')
-    response = api.commit()
-    assert response['projects'][0]['name'] == 'UpdatedProject1'
-    assert 'UpdatedProject1' in [p['name'] for p in api.state['projects']]
-    assert api.projects.get_by_id(project1['id']) == project1
+    project1.delete()
+    api.commit()
+
+
+def test_project_move_to_parent(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
 
     project2 = api.projects.add('Project2')
+    api.commit()
+
+    project2.move(project1['id'])
     response = api.commit()
     assert response['projects'][0]['name'] == 'Project2'
-    api.projects.update_orders_indents({
-        project1['id']: [1, 2],
-        project2['id']: [2, 3]
-    })
+    assert response['projects'][0]['parent_id'] == project1['id']
+    assert project1['id'] in [
+        i['parent_id'] for i in api.state['projects'] if i['id'] == project2['id']
+    ]
+
+    project2.delete()
+    api.commit()
+    project1.delete()
+    api.commit()
+
+
+def test_project_reorder(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
+
+    project2 = api.projects.add('Project2')
+    api.commit()
+
+    api.projects.reorder(projects=[
+        {'id': project1['id'], 'child_order': 2},
+        {'id': project2['id'], 'child_order': 1},
+    ])
     response = api.commit()
     for project in response['projects']:
         if project['id'] == project1['id']:
-            assert project['item_order'] == 1
-            assert project['indent'] == 2
+            assert project['child_order'] == 2
         if project['id'] == project2['id']:
-            assert project['item_order'] == 2
-            assert project['indent'] == 3
-    assert 1 in [
-        p['item_order'] for p in api.state['projects']
+            assert project['child_order'] == 1
+    assert 2 in [
+        p['child_order'] for p in api.state['projects']
         if p['id'] == project1['id']
     ]
-    assert 2 in [
-        p['indent'] for p in api.state['projects'] if p['id'] == project1['id']
-    ]
-    assert 2 in [
-        p['item_order'] for p in api.state['projects']
+    assert 1 in [
+        p['child_order'] for p in api.state['projects']
         if p['id'] == project2['id']
-    ]
-    assert 3 in [
-        p['indent'] for p in api.state['projects'] if p['id'] == project2['id']
     ]
 
     project1.delete()
-    response = api.commit()
-    assert response['projects'][0]['id'] == project1['id']
-    assert response['projects'][0]['is_deleted'] == 1
-    assert 'UpdatedProject1' not in [p['name'] for p in api.state['projects']]
-
-    api.projects.archive(project2['id'])
-    response = api.commit()
-    assert response['projects'][0]['name'] == 'Project2'
-    assert response['projects'][0]['is_archived'] == 1
-    assert 1 in [
-        p['is_archived'] for p in api.state['projects']
-        if p['id'] == project2['id']
-    ]
-
-    api.projects.unarchive(project2['id'])
-    response = api.commit()
-    assert response['projects'][0]['name'] == 'Project2'
-    assert response['projects'][0]['is_archived'] == 0
-    assert 0 in [
-        p['is_archived'] for p in api.state['projects']
-        if p['id'] == project2['id']
-    ]
-
-    api.projects.update(project2['id'], name='UpdatedProject2')
-    response = api.commit()
-    assert response['projects'][0]['name'] == 'UpdatedProject2'
-    assert 'UpdatedProject2' in [p['name'] for p in api.state['projects']]
-
-    api.projects.delete([project2['id']])
-    response = api.commit()
-    assert response['projects'][0]['id'] == project2['id']
-    assert response['projects'][0]['is_deleted'] == 1
-    assert 'UpdatedProject2' not in [p['name'] for p in api.state['projects']]
+    api.commit()
+    project2.delete()
+    api.commit()
 
 
-def test_item(cleanup, api_endpoint, api_token):
+def test_item_add(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
-
     api.sync()
 
     response = api.add_item('Item1')
@@ -141,42 +198,31 @@ def test_item(cleanup, api_endpoint, api_token):
     assert 'Item1' in [i['content'] for i in api.state['items']]
     item1 = [i for i in api.state['items'] if i['content'] == 'Item1'][0]
     assert api.items.get_by_id(item1['id']) == item1
+
+    item1.delete()
+    api.commit()
+
+
+def test_item_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.sync()
+
     item1.delete()
     response = api.commit()
+    assert response['items'][0]['id'] == item1['id']
+    assert response['items'][0]['is_deleted'] == 1
+    assert 'Item1' not in [i['content'] for i in api.state['items']]
 
-    inbox = [p for p in api.state['projects'] if p['name'] == 'Inbox'][0]
-    item1 = api.items.add('Item1', inbox['id'])
-    response = api.commit()
-    assert response['items'][0]['content'] == 'Item1'
-    assert 'Item1' in [i['content'] for i in api.state['items']]
-    assert api.items.get_by_id(item1['id']) == item1
 
-    item1.complete()
-    response = api.commit()
-    assert response['items'][0]['content'] == 'Item1'
-    assert response['items'][0]['checked'] == 1
-    assert 1 in [
-        i['checked'] for i in api.state['items'] if i['id'] == item1['id']
-    ]
+def test_item_update(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
 
-    item1.uncomplete()
-    response = api.commit()
-    assert response['items'][0]['content'] == 'Item1'
-    assert response['items'][0]['checked'] == 0
-    assert 0 in [
-        i['checked'] for i in api.state['items'] if i['id'] == item1['id']
-    ]
-
-    project1 = api.projects.add('Project1')
-    response = api.commit()
-
-    item1.move(project1['id'])
-    response = api.commit()
-    assert response['items'][0]['content'] == 'Item1'
-    assert response['items'][0]['project_id'] == project1['id']
-    assert project1['id'] in [
-        i['project_id'] for i in api.state['items'] if i['id'] == item1['id']
-    ]
+    item1 = api.items.add('Item1')
+    api.commit()
 
     item1.update(content='UpdatedItem1')
     response = api.commit()
@@ -184,41 +230,224 @@ def test_item(cleanup, api_endpoint, api_token):
     assert 'UpdatedItem1' in [i['content'] for i in api.state['items']]
     assert api.items.get_by_id(item1['id']) == item1
 
-    date_string = datetime.datetime(2038, 1, 19, 3, 14, 7)
-    item2 = api.items.add('Item2', inbox['id'], date_string=date_string)
+    item1.delete()
+    api.commit()
+
+
+def test_item_complete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    item2 = api.items.add('Item2', parent_id=item1['id'])
+    api.commit()
+
+    item2.complete()
+    response = api.commit()
+    assert response['items'][0]['content'] == 'Item2'
+    assert response['items'][0]['checked'] == 1
+    assert 1 in [
+        i['checked'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
+
+    item1.delete()
+    api.commit()
+    item2.delete()
+    api.commit()
+
+
+def test_item_uncomplete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    item2 = api.items.add('Item2', parent_id=item1['id'])
+    api.commit()
+    item2.complete()
+    api.commit()
+
+    item2.uncomplete()
+    response = api.commit()
+    assert response['items'][0]['content'] == 'Item2'
+    assert response['items'][0]['checked'] == 0
+    assert 0 in [
+        i['checked'] for i in api.state['items'] if i['id'] == item1['id']
+    ]
+
+    item1.delete()
+    api.commit()
+    item2.delete()
+    api.commit()
+
+
+def test_item_archive(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    item2 = api.items.add('Item2', parent_id=item1['id'])
+    api.commit()
+    item2.complete()
+    api.commit()
+
+    item2.archive()
+    response = api.commit()
+    assert response['items'][0]['content'] == 'Item2'
+    assert response['items'][0]['in_history'] == 1
+    assert 1 in [
+        i['in_history'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
+
+    item1.delete()
+    api.commit()
+    item2.delete()
+    api.commit()
+
+
+def test_item_unarchive(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    item2 = api.items.add('Item2', parent_id=item1['id'])
+    api.commit()
+    item2.complete()
+    api.commit()
+    item2.archive()
+    api.commit()
+
+    item2.unarchive()
+    response = api.commit()
+    assert response['items'][0]['content'] == 'Item2'
+    assert response['items'][0]['in_history'] == 0
+    assert 0 in [
+        i['in_history'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
+
+    item1.delete()
+    api.commit()
+    item2.delete()
+    api.commit()
+
+
+def test_item_move_to_project(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    project1 = api.projects.add('Project1')
+    api.commit()
+
+    item1.move(project_id=project1['id'])
+    response = api.commit()
+    assert response['items'][0]['content'] == 'Item1'
+    assert response['items'][0]['project_id'] == project1['id']
+    assert project1['id'] in [
+        i['project_id'] for i in api.state['items'] if i['id'] == item1['id']
+    ]
+
+    item1.delete()
+    api.commit()
+    project1.delete()
+    api.commit()
+
+
+def test_item_move_to_parent(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    item2 = api.items.add('Item2')
+    api.commit()
+
+    item2.move(parent_id=item1['id'])
+    response = api.commit()
+    assert response['items'][0]['content'] == 'Item2'
+    assert response['items'][0]['parent_id'] == item1['id']
+    assert item1['id'] in [
+        i['parent_id'] for i in api.state['items'] if i['id'] == item2['id']
+    ]
+
+    item1.delete()
+    api.commit()
+    item2.delete()
+    api.commit()
+
+
+def test_item_update_date_complete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1', due={'string': 'every day'})
     api.commit()
 
     now = time.time()
     tomorrow = time.gmtime(now + 24 * 3600)
-    new_date_utc = time.strftime("%Y-%m-%dT%H:%M", tomorrow)
-    api.items.update_date_complete(item1['id'], new_date_utc, 'every day', 0)
+    new_date_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", tomorrow)
+    due = {
+        'date': new_date_utc,
+        'string': 'every day',
+        'is_forward': 0,
+    }
+    api.items.update_date_complete(item1['id'], due=due)
     response = api.commit()
-    assert response['items'][0]['date_string'] == 'every day'
+    assert response['items'][0]['due']['string'] == 'every day'
     assert 'every day' in [
-        i['date_string'] for i in api.state['items'] if i['id'] == item1['id']
+        i['due']['string'] for i in api.state['items'] if i['id'] == item1['id']
     ]
 
-    api.items.update_orders_indents({item1['id']: [2, 2], item2['id']: [1, 3]})
+    item1.delete()
+    api.commit()
+
+
+def test_item_reorder(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    item2 = api.items.add('Item2')
+    api.commit()
+
+    api.items.reorder(items=[
+        {'id': item1['id'], 'child_order': 2},
+        {'id': item2['id'], 'child_order': 1},
+    ])
     response = api.commit()
     for item in response['items']:
         if item['id'] == item1['id']:
-            assert item['item_order'] == 2
-            assert item['indent'] == 2
+            assert item['child_order'] == 2
         if item['id'] == item2['id']:
-            assert item['item_order'] == 1
-            assert item['indent'] == 3
+            assert item['child_order'] == 1
     assert 2 in [
-        i['item_order'] for i in api.state['items'] if i['id'] == item1['id']
-    ]
-    assert 2 in [
-        i['indent'] for i in api.state['items'] if i['id'] == item1['id']
+        p['child_order'] for p in api.state['items']
+        if p['id'] == item1['id']
     ]
     assert 1 in [
-        i['item_order'] for i in api.state['items'] if i['id'] == item2['id']
+        p['child_order'] for p in api.state['items']
+        if p['id'] == item2['id']
     ]
-    assert 3 in [
-        i['indent'] for i in api.state['items'] if i['id'] == item2['id']
-    ]
+
+    item1.delete()
+    api.commit()
+    item2.delete()
+    api.commit()
+
+
+def test_item_update_day_orders(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    item2 = api.items.add('Item2')
+    api.commit()
 
     api.items.update_day_orders({item1['id']: 1, item2['id']: 2})
     response = api.commit()
@@ -231,53 +460,14 @@ def test_item(cleanup, api_endpoint, api_token):
     assert 2 == api.state['day_orders'][str(item2['id'])]
 
     item1.delete()
-    response = api.commit()
-    assert response['items'][0]['id'] == item1['id']
-    assert response['items'][0]['is_deleted'] == 1
-    assert 'UpdatedItem1' not in [i['content'] for i in api.state['items']]
+    api.commit()
 
-    api.items.complete([item2['id']])
-    response = api.commit()
-    assert response['items'][0]['content'] == 'Item2'
-    assert response['items'][0]['checked'] == 1
-    assert 1 in [
-        i['checked'] for i in api.state['items'] if i['id'] == item2['id']
-    ]
-
-    api.items.uncomplete([item2['id']])
-    response = api.commit()
-    assert response['items'][0]['content'] == 'Item2'
-    assert response['items'][0]['checked'] == 0
-    assert 0 in [
-        i['checked'] for i in api.state['items'] if i['id'] == item2['id']
-    ]
-
-    api.items.move({item2['project_id']: [item2['id']]}, project1['id'])
-    response = api.commit()
-    assert response['items'][0]['content'] == 'Item2'
-    assert response['items'][0]['project_id'] == project1['id']
-    assert project1['id'] in [
-        i['project_id'] for i in api.state['items'] if i['id'] == item2['id']
-    ]
-
-    api.items.update(item2['id'], content='UpdatedItem2')
-    response = api.commit()
-    assert response['items'][0]['content'] == 'UpdatedItem2'
-    assert 'UpdatedItem2' in [i['content'] for i in api.state['items']]
-
-    api.items.delete([item2['id']])
-    response = api.commit()
-    assert response['items'][0]['id'] == item2['id']
-    assert response['items'][0]['is_deleted'] == 1
-    assert 'UpdatedItem2' not in [i['content'] for i in api.state['items']]
-
-    project1.delete()
-    response = api.commit()
+    item2.delete()
+    api.commit()
 
 
-def test_label(cleanup, api_endpoint, api_token):
+def test_label_add(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
-
     api.sync()
 
     label1 = api.labels.add('Label1')
@@ -286,14 +476,49 @@ def test_label(cleanup, api_endpoint, api_token):
     assert 'Label1' in [l['name'] for l in api.state['labels']]
     assert api.labels.get_by_id(label1['id']) == label1
 
+    label1.delete()
+    api.commit()
+
+
+def test_label_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    label1 = api.labels.add('Label1')
+    api.commit()
+
+    label1.delete()
+    response = api.commit()
+    assert response['labels'][0]['id'] == label1['id']
+    assert response['labels'][0]['is_deleted'] == 1
+    assert 'UpdatedLabel1' not in [l['name'] for l in api.state['labels']]
+
+
+def test_label_update(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    label1 = api.labels.add('Label1')
+    api.commit()
+
     label1.update(name='UpdatedLabel1')
     response = api.commit()
     assert response['labels'][0]['name'] == 'UpdatedLabel1'
     assert 'UpdatedLabel1' in [l['name'] for l in api.state['labels']]
     assert api.labels.get_by_id(label1['id']) == label1
 
+    label1.delete()
+    api.commit()
+
+
+def test_label_update_orders(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    label1 = api.labels.add('Label1')
+    api.commit()
     label2 = api.labels.add('Label2')
-    response = api.commit()
+    api.commit()
 
     api.labels.update_orders({label1['id']: 1, label2['id']: 2})
     response = api.commit()
@@ -310,30 +535,16 @@ def test_label(cleanup, api_endpoint, api_token):
     ]
 
     label1.delete()
-    response = api.commit()
-    assert response['labels'][0]['id'] == label1['id']
-    assert response['labels'][0]['is_deleted'] == 1
-    assert 'UpdatedLabel1' not in [l['name'] for l in api.state['labels']]
-
-    api.labels.update(label2['id'], name='UpdatedLabel2')
-    response = api.commit()
-    assert response['labels'][0]['name'] == 'UpdatedLabel2'
-    assert 'UpdatedLabel2' in [l['name'] for l in api.state['labels']]
-
-    api.labels.delete(label2['id'])
-    response = api.commit()
-    assert response['labels'][0]['id'] == label2['id']
-    assert response['labels'][0]['is_deleted'] == 1
-    assert 'UpdatedLabel1' not in [l['name'] for l in api.state['labels']]
+    api.commit()
+    label2.delete()
+    api.commit()
 
 
-def test_note(cleanup, api_endpoint, api_token):
+def test_note_add(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
-
     api.sync()
 
-    inbox = [p for p in api.state['projects'] if p['name'] == 'Inbox'][0]
-    item1 = api.items.add('Item1', inbox['id'])
+    item1 = api.items.add('Item1')
     api.commit()
 
     note1 = api.notes.add(item1['id'], 'Note1')
@@ -342,11 +553,20 @@ def test_note(cleanup, api_endpoint, api_token):
     assert 'Note1' in [n['content'] for n in api.state['notes']]
     assert api.notes.get_by_id(note1['id']) == note1
 
-    note1.update(content='UpdatedNote1')
-    response = api.commit()
-    assert response['notes'][0]['content'] == 'UpdatedNote1'
-    assert 'UpdatedNote1' in [n['content'] for n in api.state['notes']]
-    assert api.notes.get_by_id(note1['id']) == note1
+    note1.delete()
+    api.commit()
+    item1.delete()
+    api.commit()
+
+
+def test_note_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1')
+    api.commit()
+    note1 = api.notes.add(item1['id'], 'Note1')
+    api.commit()
 
     note1.delete()
     response = api.commit()
@@ -354,29 +574,35 @@ def test_note(cleanup, api_endpoint, api_token):
     assert response['notes'][0]['is_deleted'] == 1
     assert 'UpdatedNote1' not in [n['content'] for n in api.state['notes']]
 
-    note2 = api.notes.add(item1['id'], 'Note2')
-    response = api.commit()
-    assert response['notes'][0]['content'] == 'Note2'
-    assert 'Note2' in [n['content'] for n in api.state['notes']]
-
-    api.notes.update(note2['id'], content='UpdatedNote2')
-    response = api.commit()
-    assert response['notes'][0]['content'] == 'UpdatedNote2'
-    assert 'UpdatedNote2' in [n['content'] for n in api.state['notes']]
-
-    api.notes.delete(note2['id'])
-    response = api.commit()
-    assert response['notes'][0]['id'] == note2['id']
-    assert response['notes'][0]['is_deleted'] == 1
-    assert 'UpdatedNote2' not in [n['content'] for n in api.state['notes']]
-
+    note1.delete()
+    api.commit()
     item1.delete()
-    response = api.commit()
+    api.commit()
 
 
-def test_projectnote(cleanup, api_endpoint, api_token):
+def test_note_update(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
 
+    item1 = api.items.add('Item1')
+    api.commit()
+    note1 = api.notes.add(item1['id'], 'Note1')
+    api.commit()
+
+    note1.update(content='UpdatedNote1')
+    response = api.commit()
+    assert response['notes'][0]['content'] == 'UpdatedNote1'
+    assert 'UpdatedNote1' in [n['content'] for n in api.state['notes']]
+    assert api.notes.get_by_id(note1['id']) == note1
+
+    note1.delete()
+    api.commit()
+    item1.delete()
+    api.commit()
+
+
+def test_projectnote_add(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()
 
     project1 = api.projects.add('Project1')
@@ -388,11 +614,20 @@ def test_projectnote(cleanup, api_endpoint, api_token):
     assert 'Note1' in [n['content'] for n in api.state['project_notes']]
     assert api.project_notes.get_by_id(note1['id']) == note1
 
-    note1.update(content='UpdatedNote1')
-    response = api.commit()
-    assert response['project_notes'][0]['content'] == 'UpdatedNote1'
-    assert 'UpdatedNote1' in [n['content'] for n in api.state['project_notes']]
-    assert api.project_notes.get_by_id(note1['id']) == note1
+    note1.delete()
+    api.commit()
+    project1.delete()
+    api.commit()
+
+
+def test_projectnote_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
+    note1 = api.project_notes.add(project1['id'], 'Note1')
+    api.commit()
 
     note1.delete()
     response = api.commit()
@@ -402,31 +637,33 @@ def test_projectnote(cleanup, api_endpoint, api_token):
         n['content'] for n in api.state['project_notes']
     ]
 
-    note2 = api.project_notes.add(project1['id'], 'Note2')
-    response = api.commit()
-    assert response['project_notes'][0]['content'] == 'Note2'
-    assert 'Note2' in [n['content'] for n in api.state['project_notes']]
-
-    api.project_notes.update(note2['id'], content='UpdatedNote2')
-    response = api.commit()
-    assert response['project_notes'][0]['content'] == 'UpdatedNote2'
-    assert 'UpdatedNote2' in [n['content'] for n in api.state['project_notes']]
-
-    api.project_notes.delete(note2['id'])
-    response = api.commit()
-    assert response['project_notes'][0]['id'] == note2['id']
-    assert response['project_notes'][0]['is_deleted'] == 1
-    assert 'UpdatedNote2' not in [
-        n['content'] for n in api.state['project_notes']
-    ]
-
     project1.delete()
-    response = api.commit()
+    api.commit()
 
 
-def test_filter(cleanup, api_endpoint, api_token):
+def test_projectnote_update(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
 
+    project1 = api.projects.add('Project1')
+    api.commit()
+    note1 = api.project_notes.add(project1['id'], 'Note1')
+    api.commit()
+
+    note1.update(content='UpdatedNote1')
+    response = api.commit()
+    assert response['project_notes'][0]['content'] == 'UpdatedNote1'
+    assert 'UpdatedNote1' in [n['content'] for n in api.state['project_notes']]
+    assert api.project_notes.get_by_id(note1['id']) == note1
+
+    note1.delete()
+    api.commit()
+    project1.delete()
+    api.commit()
+
+
+def test_filter_add(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()
 
     filter1 = api.filters.add('Filter1', 'no due date')
@@ -435,14 +672,50 @@ def test_filter(cleanup, api_endpoint, api_token):
     assert 'Filter1' in [f['name'] for f in api.state['filters']]
     assert api.filters.get_by_id(filter1['id']) == filter1
 
+    filter1.delete()
+    api.commit()
+
+
+def test_filter_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    filter1 = api.filters.add('Filter1', 'no due date')
+    api.commit()
+
+    filter1.delete()
+    response = api.commit()
+    assert response['filters'][0]['id'] == filter1['id']
+    assert response['filters'][0]['is_deleted'] == 1
+    assert 'Filter1' not in [p['name'] for p in api.state['filters']]
+
+
+def test_filter_update(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    filter1 = api.filters.add('Filter1', 'no due date')
+    api.commit()
+
     filter1.update(name='UpdatedFilter1')
     response = api.commit()
     assert response['filters'][0]['name'] == 'UpdatedFilter1'
     assert 'UpdatedFilter1' in [f['name'] for f in api.state['filters']]
     assert api.filters.get_by_id(filter1['id']) == filter1
 
+    filter1.delete()
+    api.commit()
+
+
+def test_filter_update_orders(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    filter1 = api.filters.add('Filter1', 'no due date')
+    api.commit()
+
     filter2 = api.filters.add('Filter2', 'today')
-    response = api.commit()
+    api.commit()
 
     api.filters.update_orders({filter1['id']: 2, filter2['id']: 1})
     response = api.commit()
@@ -461,38 +734,56 @@ def test_filter(cleanup, api_endpoint, api_token):
     ]
 
     filter1.delete()
-    response = api.commit()
-    assert response['filters'][0]['id'] == filter1['id']
-    assert response['filters'][0]['is_deleted'] == 1
-    assert 'UpdatedFilter1' not in [p['name'] for p in api.state['filters']]
-
-    api.filters.update(filter2['id'], name='UpdatedFilter2')
-    response = api.commit()
-    assert response['filters'][0]['name'] == 'UpdatedFilter2'
-    assert 'UpdatedFilter2' in [f['name'] for f in api.state['filters']]
-
-    api.filters.delete(filter2['id'])
-    response = api.commit()
-    assert response['filters'][0]['id'] == filter2['id']
-    assert response['filters'][0]['is_deleted'] == 1
-    assert 'UpdatedFilter2' not in [f['name'] for f in api.state['filters']]
-
-
-def test_reminder(cleanup, api_endpoint, api_token):
-    api = todoist.api.TodoistAPI(api_token, api_endpoint)
-
-    api.sync()
-
-    inbox = [p for p in api.state['projects'] if p['name'] == 'Inbox'][0]
-    item1 = api.items.add('Item1', inbox['id'], date_string='tomorrow 5pm')
+    api.commit()
+    filter2.delete()
     api.commit()
 
-    # relative
+
+def test_reminder_relative_add(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1', due={'string': 'tomorrow 5pm'})
+    api.commit()
+
     reminder1 = api.reminders.add(item1['id'], minute_offset=30)
     response = api.commit()
     assert response['reminders'][0]['minute_offset'] == 30
     assert reminder1['id'] in [p['id'] for p in api.state['reminders']]
     assert api.reminders.get_by_id(reminder1['id']) == reminder1
+
+    reminder1.delete()
+    api.commit()
+    item1.delete()
+    api.commit()
+
+
+def test_reminder_relative_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1', due={'string': 'tomorrow 5pm'})
+    api.commit()
+    reminder1 = api.reminders.add(item1['id'], minute_offset=30)
+    api.commit()
+
+    reminder1.delete()
+    response = api.commit()
+    assert response['reminders'][0]['is_deleted'] == 1
+    assert reminder1['id'] not in [p['id'] for p in api.state['reminders']]
+
+    item1.delete()
+    api.commit()
+
+
+def test_reminder_relative_update(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1', due={'string': 'tomorrow 5pm'})
+    api.commit()
+    reminder1 = api.reminders.add(item1['id'], minute_offset=30)
+    api.commit()
 
     reminder1.update(minute_offset=str(15))
     response = api.commit()
@@ -501,38 +792,81 @@ def test_reminder(cleanup, api_endpoint, api_token):
     assert api.reminders.get_by_id(reminder1['id']) == reminder1
 
     reminder1.delete()
+    api.commit()
+    item1.delete()
+    api.commit()
+
+
+def test_reminder_absolute_add(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1', due={'string': 'tomorrow 5pm'})
+    api.commit()
+
+    now = time.time()
+    tomorrow = time.gmtime(now + 24 * 3600)
+    due_date_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", tomorrow)
+    reminder1 = api.reminders.add(item1['id'], due={'date': due_date_utc})
+    response = api.commit()
+    assert response['reminders'][0]['due']['date'] == due_date_utc
+    tomorrow = time.gmtime(time.time() + 24 * 3600)
+    assert reminder1['id'] in [p['id'] for p in api.state['reminders']]
+    assert api.reminders.get_by_id(reminder1['id']) == reminder1
+
+    reminder1.delete()
+    api.commit()
+    item1.delete()
+    api.commit()
+
+
+def test_reminder_absolute_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1', due={'string': 'tomorrow 5pm'})
+    api.commit()
+
+    now = time.time()
+    tomorrow = time.gmtime(now + 24 * 3600)
+    due_date_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", tomorrow)
+    reminder1 = api.reminders.add(item1['id'], due={'date': due_date_utc})
+    api.commit()
+
+    api.reminders.delete(reminder1['id'])
     response = api.commit()
     assert response['reminders'][0]['is_deleted'] == 1
     assert reminder1['id'] not in [p['id'] for p in api.state['reminders']]
 
-    # absolute
-    now = time.time()
-    tomorrow = time.gmtime(now + 24 * 3600)
-    due_date_utc = time.strftime("%Y-%m-%dT%H:%M", tomorrow)
-    due_date_utc_long = time.strftime("%a %d %b %Y %H:%M:00 +0000", tomorrow)
-    reminder2 = api.reminders.add(item1['id'], due_date_utc=due_date_utc)
-    response = api.commit()
-    assert response['reminders'][0]['due_date_utc'] == due_date_utc_long
-    tomorrow = time.gmtime(time.time() + 24 * 3600)
-    assert reminder2['id'] in [p['id'] for p in api.state['reminders']]
-    assert api.reminders.get_by_id(reminder2['id']) == reminder2
-
-    tomorrow = time.gmtime(now + 24 * 3600 + 60)
-    due_date_utc = time.strftime("%Y-%m-%dT%H:%M", tomorrow)
-    due_date_utc_long = time.strftime("%a %d %b %Y %H:%M:00 +0000", tomorrow)
-    api.reminders.update(reminder2['id'], due_date_utc=due_date_utc)
-    response = api.commit()
-    assert response['reminders'][0]['due_date_utc'] == due_date_utc_long
-    assert reminder2['id'] in [p['id'] for p in api.state['reminders']]
-    assert api.reminders.get_by_id(reminder2['id']) == reminder2
-
-    api.reminders.delete(reminder2['id'])
-    response = api.commit()
-    assert response['reminders'][0]['is_deleted'] == 1
-    assert reminder2['id'] not in [p['id'] for p in api.state['reminders']]
-
     item1.delete()
     response = api.commit()
+
+
+def test_reminder_absolute_update(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add('Item1', due={'string': 'tomorrow 5pm'})
+    api.commit()
+
+    now = time.time()
+    tomorrow = time.gmtime(now + 24 * 3600)
+    due_date_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", tomorrow)
+    reminder1 = api.reminders.add(item1['id'], due={'date': due_date_utc})
+    api.commit()
+
+    tomorrow = time.gmtime(now + 24 * 3600 + 60)
+    due_date_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", tomorrow)
+    api.reminders.update(reminder1['id'], due_date_utc=due_date_utc)
+    response = api.commit()
+    assert response['reminders'][0]['due']['date'] == due_date_utc
+    assert reminder1['id'] in [p['id'] for p in api.state['reminders']]
+    assert api.reminders.get_by_id(reminder1['id']) == reminder1
+
+    reminder1.delete()
+    api.commit()
+    item1.delete()
+    api.commit()
 
 
 def test_locations(api_endpoint, api_token):
@@ -558,8 +892,7 @@ def test_live_notifications(api_endpoint, api_token):
         api.state['live_notifications_last_read_id']
 
 
-def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
-
+def test_share_accept(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api2 = todoist.api.TodoistAPI(api_token2, api_endpoint)
 
@@ -571,7 +904,6 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     api2.commit()
     api2.sync()
 
-    # accept
     project1 = api.projects.add('Project1')
     api.commit()
 
@@ -594,13 +926,30 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     assert api2.state['user']['id'] in \
         [p['user_id'] for p in api2.state['collaborator_states']]
 
-    # reject
-    project2 = api.projects.add('Project2')
+    api.sync()
+    project1 = [p for p in api.state['projects'] if p['name'] == 'Project1'][0]
+    project1.delete()
     api.commit()
 
-    api.projects.share(project2['id'], api2.state['user']['email'])
+
+def test_share_reject(cleanup, cleanup2, api_endpoint, api_token, api_token2):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api2 = todoist.api.TodoistAPI(api_token2, api_endpoint)
+
+    api.user.update(auto_invite_disabled=1)
+    api.commit()
+    api.sync()
+
+    api2.user.update(auto_invite_disabled=1)
+    api2.commit()
+    api2.sync()
+
+    project1 = api.projects.add('Project1')
+    api.commit()
+
+    api.projects.share(project1['id'], api2.state['user']['email'])
     response = api.commit()
-    assert response['projects'][0]['name'] == project2['name']
+    assert response['projects'][0]['name'] == project1['name']
     assert response['projects'][0]['shared']
 
     response2 = api2.sync()
@@ -608,7 +957,7 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
                         if ln['notification_type'] == 'share_invitation_sent'),
                        None)
     assert invitation2 is not None
-    assert invitation2['project_name'] == project2['name']
+    assert invitation2['project_name'] == project1['name']
     assert invitation2['from_user']['email'] == api.state['user']['email']
 
     api2.invitations.reject(invitation2['id'],
@@ -617,17 +966,29 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     assert len(response2['projects']) == 0
     assert len(response2['collaborator_states']) == 0
 
-    project2 = [p for p in api.state['projects'] if p['name'] == 'Project2'][0]
-    project2.delete()
+    project1 = [p for p in api.state['projects'] if p['name'] == 'Project1'][0]
+    project1.delete()
     api.commit()
 
-    # delete
-    project3 = api.projects.add('Project3')
+
+def test_share_delete(cleanup, cleanup2, api_endpoint, api_token, api_token2):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api2 = todoist.api.TodoistAPI(api_token2, api_endpoint)
+
+    api.user.update(auto_invite_disabled=1)
+    api.commit()
+    api.sync()
+
+    api2.user.update(auto_invite_disabled=1)
+    api2.commit()
+    api2.sync()
+
+    project1 = api.projects.add('Project1')
     api.commit()
 
-    api.projects.share(project3['id'], api2.state['user']['email'])
+    api.projects.share(project1['id'], api2.state['user']['email'])
     response = api.commit()
-    assert response['projects'][0]['name'] == project3['name']
+    assert response['projects'][0]['name'] == project1['name']
     assert response['projects'][0]['shared']
 
     response2 = api2.sync()
@@ -635,14 +996,14 @@ def test_share(cleanup, cleanup2, api_endpoint, api_token, api_token2):
                         if ln['notification_type'] == 'share_invitation_sent'),
                        None)
     assert invitation3 is not None
-    assert invitation3['project_name'] == project3['name']
+    assert invitation3['project_name'] == project1['name']
     assert invitation3['from_user']['email'] == api.state['user']['email']
 
     api.invitations.delete(invitation3['id'])
     api.commit()
 
-    project3 = [p for p in api.state['projects'] if p['name'] == 'Project3'][0]
-    project3.delete()
+    project1 = [p for p in api.state['projects'] if p['name'] == 'Project1'][0]
+    project1.delete()
     api.commit()
 
 
@@ -655,7 +1016,7 @@ def test_templates(cleanup, api_endpoint, api_token):
     project2 = api.projects.add('Project2')
     api.commit()
 
-    item1 = api.items.add('Item1', project1['id'])
+    item1 = api.items.add('Item1', project_id=project1['id'])
     api.commit()
 
     template = api.templates.export_as_file(project1['id'])
@@ -668,6 +1029,8 @@ def test_templates(cleanup, api_endpoint, api_token):
     assert result == {'status': u'ok'}
 
     item1.delete()
+    api.commit()
     project1.delete()
+    api.commit()
     project2.delete()
     api.commit()
