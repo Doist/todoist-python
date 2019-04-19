@@ -1,6 +1,6 @@
-# Changes
+# Changelog
 
-Here follows a list of the changes between `v7` and `v8` API versions:
+## [8.0] - 2019-04-18
 
 * All arguments expecting a date/time must be formatted according to [RFC
   3339](https://tools.ietf.org/html/rfc3339), and all return values are also
