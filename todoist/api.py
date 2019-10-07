@@ -25,6 +25,7 @@ from todoist.managers.notes import NotesManager, ProjectNotesManager
 from todoist.managers.projects import ProjectsManager
 from todoist.managers.quick import QuickManager
 from todoist.managers.reminders import RemindersManager
+from todoist.managers.sections import SectionsManager
 from todoist.managers.templates import TemplatesManager
 from todoist.managers.uploads import UploadsManager
 from todoist.managers.user import UserManager
@@ -65,30 +66,31 @@ class TodoistAPI(object):
         )  # Session instance for requests
 
         # managers
-        self.projects = ProjectsManager(self)
-        self.project_notes = ProjectNotesManager(self)
-        self.items = ItemsManager(self)
-        self.labels = LabelsManager(self)
-        self.filters = FiltersManager(self)
-        self.notes = NotesManager(self)
-        self.live_notifications = LiveNotificationsManager(self)
-        self.reminders = RemindersManager(self)
-        self.locations = LocationsManager(self)
-        self.invitations = InvitationsManager(self)
         self.biz_invitations = BizInvitationsManager(self)
-        self.user = UserManager(self)
-        self.user_settings = UserSettingsManager(self)
         self.collaborators = CollaboratorsManager(self)
         self.collaborator_states = CollaboratorStatesManager(self)
+        self.filters = FiltersManager(self)
+        self.invitations = InvitationsManager(self)
+        self.items = ItemsManager(self)
+        self.labels = LabelsManager(self)
+        self.live_notifications = LiveNotificationsManager(self)
+        self.locations = LocationsManager(self)
+        self.notes = NotesManager(self)
+        self.projects = ProjectsManager(self)
+        self.project_notes = ProjectNotesManager(self)
+        self.reminders = RemindersManager(self)
+        self.sections = SectionsManager(self)
+        self.user = UserManager(self)
+        self.user_settings = UserSettingsManager(self)
 
-        self.completed = CompletedManager(self)
-        self.uploads = UploadsManager(self)
         self.activity = ActivityManager(self)
-        self.business_users = BusinessUsersManager(self)
-        self.templates = TemplatesManager(self)
         self.backups = BackupsManager(self)
-        self.quick = QuickManager(self)
+        self.business_users = BusinessUsersManager(self)
+        self.completed = CompletedManager(self)
         self.emails = EmailsManager(self)
+        self.quick = QuickManager(self)
+        self.templates = TemplatesManager(self)
+        self.uploads = UploadsManager(self)
 
         if cache:  # Read and write user state on local disk cache
             self.cache = os.path.expanduser(cache)
@@ -113,6 +115,7 @@ class TodoistAPI(object):
             'project_notes': [],
             'projects': [],
             'reminders': [],
+            'sections': [],
             'settings_notifications': {},
             'user': {},
             'user_settings': {},
@@ -172,6 +175,7 @@ class TodoistAPI(object):
             ('project_notes', models.ProjectNote),
             ('projects', models.Project),
             ('reminders', models.Reminder),
+            ('sections', models.Section),
         ]
         for datatype, model in resp_models_mapping:
             if datatype not in syncdata:
@@ -259,6 +263,8 @@ class TodoistAPI(object):
             return self.projects.get_by_id(obj['id'], only_local=True)
         elif objtype == 'reminders':
             return self.reminders.get_by_id(obj['id'], only_local=True)
+        elif objtype == 'sections':
+            return self.sections.get_by_id(obj['id'], only_local=True)
         else:
             return None
 
@@ -272,7 +278,7 @@ class TodoistAPI(object):
         # replaced by a real one.
         for datatype in [
                 'filters', 'items', 'labels', 'notes', 'project_notes',
-                'projects', 'reminders'
+                'projects', 'reminders', 'sections'
         ]:
             for obj in self.state[datatype]:
                 if obj.temp_id == temp_id:

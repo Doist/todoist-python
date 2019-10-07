@@ -661,6 +661,141 @@ def test_projectnote_update(cleanup, api_endpoint, api_token):
     api.commit()
 
 
+def test_section_add(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    response = api.sections.add('Section1', api.state['user']['inbox_project'])
+    assert response['name'] == 'Section1'
+    api.sync()
+    assert 'Section1' in [i['name'] for i in api.state['sections']]
+    section1 = [i for i in api.state['sections'] if i['name'] == 'Section1'][0]
+    assert api.sections.get_by_id(section1['id']) == section1
+
+    section1.delete()
+    api.commit()
+
+
+def test_section_delete(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    section1 = api.sections.add('Section1', api.state['user']['inbox_project'])
+    api.sync()
+
+    section1.delete()
+    response = api.commit()
+    assert response['sections'][0]['id'] == section1['id']
+    assert response['sections'][0]['is_deleted'] == 1
+    assert 'Section1' not in [i['name'] for i in api.state['sections']]
+
+
+def test_section_update(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    section1 = api.sections.add('Section1', api.state['user']['inbox_project'])
+    api.commit()
+
+    section1.update(name='UpdatedSection1')
+    response = api.commit()
+    assert response['sections'][0]['name'] == 'UpdatedSection1'
+    assert 'UpdatedSection1' in [i['name'] for i in api.state['sections']]
+    assert api.sections.get_by_id(section1['id']) == section1
+
+    section1.delete()
+    api.commit()
+
+
+def test_section_archive(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    section1 = api.sections.add('Section1', api.state['user']['inbox_project'])
+    api.commit()
+
+    section1.archive()
+    response = api.commit()
+    assert response['sections'][0]['name'] == 'Section1'
+    assert response['sections'][0]['is_archived'] == 1
+
+    section1.delete()
+    api.commit()
+
+
+def test_section_unarchive(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    section1 = api.sections.add('Section1', api.state['user']['inbox_project'])
+    api.commit()
+
+    section1.unarchive()
+    response = api.commit()
+    assert response['sections'][0]['name'] == 'Section1'
+    assert response['sections'][0]['is_archived'] == 0
+
+    section1.delete()
+    api.commit()
+
+
+def test_section_move_to_project(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    section1 = api.sections.add('Section1', api.state['user']['inbox_project'])
+    api.commit()
+    project1 = api.projects.add('Project1')
+    api.commit()
+
+    section1.move(project_id=project1['id'])
+    response = api.commit()
+    assert response['sections'][0]['name'] == 'Section1'
+    assert response['sections'][0]['project_id'] == project1['id']
+    assert project1['id'] in [
+        i['project_id'] for i in api.state['sections'] if i['id'] == section1['id']
+    ]
+
+    section1.delete()
+    api.commit()
+    project1.delete()
+    api.commit()
+
+
+def test_section_reorder(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    section1 = api.sections.add('Section1', api.state['user']['inbox_project'])
+    api.commit()
+    section2 = api.sections.add('Section2', api.state['user']['inbox_project'])
+    api.commit()
+
+    api.sections.reorder(sections=[
+        {'id': section1['id'], 'section_order': 2},
+        {'id': section2['id'], 'section_order': 1},
+    ])
+    response = api.commit()
+    for section in response['sections']:
+        if section['id'] == section1['id']:
+            assert section['section_order'] == 2
+        if section['id'] == section2['id']:
+            assert section['section_order'] == 1
+    assert 2 in [
+        p['section_order'] for p in api.state['sections']
+        if p['id'] == section1['id']
+    ]
+    assert 1 in [
+        p['section_order'] for p in api.state['sections']
+        if p['id'] == section2['id']
+    ]
+
+    section1.delete()
+    api.commit()
+    section2.delete()
+    api.commit()
+
+
 def test_filter_add(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()

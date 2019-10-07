@@ -233,7 +233,7 @@ class Project(Model):
 
     def move(self, parent_id):
         """
-        Moves item to another parent.
+        Moves project to another parent.
         """
         self.api.projects.move(self['id'], parent_id)
 
@@ -267,3 +267,43 @@ class Reminder(Model):
         """
         self.api.reminders.delete(self['id'])
         self.data['is_deleted'] = 1
+
+
+class Section(Model):
+    """
+    Implements a section.
+    """
+    def update(self, **kwargs):
+        """
+        Updates section.
+        """
+        self.api.sections.update(self['id'], **kwargs)
+        self.data.update(kwargs)
+
+    def delete(self):
+        """
+        Deletes section.
+        """
+        self.api.sections.delete(self['id'])
+        self.data['is_deleted'] = 1
+
+    def move(self, project_id):
+        """
+        Moves section to another project.
+        """
+        self.api.sections.move(self['id'], project_id=project_id)
+        self.data['project_id'] = project_id
+
+    def archive(self, date_archived=None):
+        """
+        Marks section as archived.
+        """
+        self.api.sections.archive(self['id'], date_archived=date_archived)
+        self.data['is_archived'] = 1
+
+    def unarchive(self):
+        """
+        Marks section as unarchived.
+        """
+        self.api.sections.unarchive(self['id'])
+        self.data['is_archived'] = 0
