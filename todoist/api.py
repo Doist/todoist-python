@@ -53,7 +53,7 @@ class TodoistAPI(object):
 
     def __init__(self,
                  token='',
-                 api_endpoint='https://todoist.com',
+                 api_endpoint='https://api.todoist.com',
                  session=None,
                  cache='~/.todoist-sync/'):
         self.api_endpoint = api_endpoint
@@ -125,7 +125,7 @@ class TodoistAPI(object):
         return {key: getattr(self, key) for key in self._serialize_fields}
 
     def get_api_url(self):
-        return '%s/API/v8/' % self.api_endpoint
+        return '%s/sync/v8/' % self.api_endpoint
 
     def _update_state(self, syncdata):
         """
