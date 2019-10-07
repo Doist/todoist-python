@@ -124,17 +124,13 @@ class Item(Model):
         self.api.items.unarchive(self['id'])
         self.data['in_history'] = 0
 
-    def update_date_complete(self, new_date_utc=None, date_string=None,
-                             is_forward=None):
+    def update_date_complete(self, due=None):
         """
         Completes a recurring task.
         """
-        self.api.items.update_date_complete(self['id'], new_date_utc,
-                                            date_string, is_forward)
-        if new_date_utc:
-            self.data['due_date_utc'] = new_date_utc
-        if date_string:
-            self.data['date_string'] = date_string
+        self.api.items.update_date_complete(self['id'], due=due)
+        if due:
+            self.data['due'] = due
 
 
 class Label(Model):

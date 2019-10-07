@@ -393,7 +393,6 @@ def test_item_update_date_complete(cleanup, api_endpoint, api_token):
     due = {
         'date': new_date_utc,
         'string': 'every day',
-        'is_forward': 0,
     }
     api.items.update_date_complete(item1['id'], due=due)
     response = api.commit()
