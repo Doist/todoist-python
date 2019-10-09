@@ -87,6 +87,12 @@ or
 
     $ pip install tox
 
-Then just type
+
+You will also need to have the `pytest.ini` file. We are providing a
+`pytest.ini.sample` that you can copy and paste to create your own
+`pytest.ini`. You will need two different tokens (`token` and `token2` keys on
+on `pytest.ini`) to be able to run all the tests successfully.
+
+With everything set up, you can just run:
 
     $ tox
