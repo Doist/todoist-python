@@ -1,0 +1,5 @@
+-e .
+flake8
+pytest
+requests
+tox
