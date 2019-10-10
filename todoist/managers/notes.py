@@ -79,8 +79,10 @@ class ProjectNotesManager(GenericNotesManager):
         """
         Creates a local project note object.
         """
-        obj = models.ProjectNote({'project_id': project_id, 'content': content},
-                                 self.api)
+        obj = models.ProjectNote(
+            {'project_id': project_id, 'content': content},
+            self.api
+        )
         obj.temp_id = obj['id'] = self.api.generate_uuid()
         obj.data.update(kwargs)
         self.state[self.state_name].append(obj)

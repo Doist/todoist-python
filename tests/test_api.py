@@ -144,7 +144,8 @@ def test_project_move_to_parent(cleanup, api_endpoint, api_token):
     assert response['projects'][0]['name'] == 'Project2'
     assert response['projects'][0]['parent_id'] == project1['id']
     assert project1['id'] in [
-        i['parent_id'] for i in api.state['projects'] if i['id'] == project2['id']
+        i['parent_id']
+        for i in api.state['projects'] if i['id'] == project2['id']
     ]
 
     project2.delete()
@@ -398,7 +399,8 @@ def test_item_update_date_complete(cleanup, api_endpoint, api_token):
     response = api.commit()
     assert response['items'][0]['due']['string'] == 'every day'
     assert 'every day' in [
-        i['due']['string'] for i in api.state['items'] if i['id'] == item1['id']
+        i['due']['string']
+        for i in api.state['items'] if i['id'] == item1['id']
     ]
 
     item1.delete()

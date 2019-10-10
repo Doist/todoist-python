@@ -85,10 +85,14 @@ class Item(Model):
             self.api.items.move(self['id'], parent_id=kwargs.get('parent_id'))
             self.data['parent_id'] = kwargs.get('parent_id')
         elif 'project_id' in kwargs:
-            self.api.items.move(self['id'], project_id=kwargs.get('project_id'))
+            self.api.items.move(
+                self['id'], project_id=kwargs.get('project_id')
+            )
             self.data['project_id'] = kwargs.get('project_id')
         else:
-            raise TypeError('move() takes one of parent_id or project_id arguments')
+            raise TypeError(
+                'move() takes one of parent_id or project_id arguments'
+            )
 
     def close(self):
         """

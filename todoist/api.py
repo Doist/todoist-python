@@ -219,7 +219,7 @@ class TodoistAPI(object):
             with open(self.cache + self.token + '.sync') as f:
                 sync_token = f.read()
             self.sync_token = sync_token
-        except:
+        except Exception:
             return
 
     def _write_cache(self):

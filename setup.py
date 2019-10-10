@@ -2,11 +2,13 @@
 import os
 from setuptools import setup
 
+
 def read(fname):
     try:
         return open(os.path.join(os.path.dirname(__file__), fname)).read()
-    except:
+    except Exception:
         return ''
+
 
 setup(
     name='todoist-python',
@@ -16,7 +18,7 @@ setup(
     author_email='info@todoist.com',
     license='BSD',
     description='todoist-python - The official Todoist Python API library',
-    long_description = read('README.md'),
+    long_description=read('README.md'),
     install_requires=[
         'requests',
     ],
