@@ -90,6 +90,16 @@ class Item(Model):
         else:
             raise TypeError('move() takes one of parent_id or project_id arguments')
 
+    def reorder(self, child_order):
+        """
+        Reorder item.
+        """
+        self.api.items.reorder([{
+            'id': self['id'],
+            'child_order': child_order
+        }])
+        self.data['child_order'] = child_order
+
     def close(self):
         """
         Marks item as closed
@@ -237,6 +247,16 @@ class Project(Model):
         """
         self.api.projects.move(self['id'], parent_id)
 
+    def reorder(self, child_order):
+        """
+        Reorder project.
+        """
+        self.api.projects.reorder([{
+            'id': self['id'],
+            'child_order': child_order
+        }])
+        self.data['child_order'] = child_order
+
     def share(self, email):
         """
         Shares projects with a user.
@@ -293,6 +313,16 @@ class Section(Model):
         """
         self.api.sections.move(self['id'], project_id=project_id)
         self.data['project_id'] = project_id
+
+    def reorder(self, section_order):
+        """
+        Reorder section.
+        """
+        self.api.sections.reorder([{
+            'id': self['id'],
+            'section_order': section_order
+        }])
+        self.data['section_order'] = section_order
 
     def archive(self, date_archived=None):
         """
