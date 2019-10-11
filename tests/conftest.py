@@ -79,6 +79,9 @@ def _cleanup(api_endpoint, api_token):
     for item in api.state['items'][:]:
         item.delete()
     api.commit()
+    for section in api.state['sections'][:]:
+        section.delete()
+    api.commit()
     for project in api.state['projects'][:]:
         if project['name'] != 'Inbox':
             project.delete()

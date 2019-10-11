@@ -90,6 +90,16 @@ class Item(Model):
         else:
             raise TypeError('move() takes one of parent_id or project_id arguments')
 
+    def reorder(self, child_order):
+        """
+        Reorder item.
+        """
+        self.api.items.reorder([{
+            'id': self['id'],
+            'child_order': child_order
+        }])
+        self.data['child_order'] = child_order
+
     def close(self):
         """
         Marks item as closed
@@ -233,9 +243,19 @@ class Project(Model):
 
     def move(self, parent_id):
         """
-        Moves item to another parent.
+        Moves project to another parent.
         """
         self.api.projects.move(self['id'], parent_id)
+
+    def reorder(self, child_order):
+        """
+        Reorder project.
+        """
+        self.api.projects.reorder([{
+            'id': self['id'],
+            'child_order': child_order
+        }])
+        self.data['child_order'] = child_order
 
     def share(self, email):
         """
@@ -267,3 +287,53 @@ class Reminder(Model):
         """
         self.api.reminders.delete(self['id'])
         self.data['is_deleted'] = 1
+
+
+class Section(Model):
+    """
+    Implements a section.
+    """
+    def update(self, **kwargs):
+        """
+        Updates section.
+        """
+        self.api.sections.update(self['id'], **kwargs)
+        self.data.update(kwargs)
+
+    def delete(self):
+        """
+        Deletes section.
+        """
+        self.api.sections.delete(self['id'])
+        self.data['is_deleted'] = 1
+
+    def move(self, project_id):
+        """
+        Moves section to another project.
+        """
+        self.api.sections.move(self['id'], project_id=project_id)
+        self.data['project_id'] = project_id
+
+    def reorder(self, section_order):
+        """
+        Reorder section.
+        """
+        self.api.sections.reorder([{
+            'id': self['id'],
+            'section_order': section_order
+        }])
+        self.data['section_order'] = section_order
+
+    def archive(self, date_archived=None):
+        """
+        Marks section as archived.
+        """
+        self.api.sections.archive(self['id'], date_archived=date_archived)
+        self.data['is_archived'] = 1
+
+    def unarchive(self):
+        """
+        Marks section as unarchived.
+        """
+        self.api.sections.unarchive(self['id'])
+        self.data['is_archived'] = 0
