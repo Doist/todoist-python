@@ -47,7 +47,7 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
 
     def delete(self, item_id):
         """
-        Delete a item remotely.
+        Deletes an item remotely.
         """
         cmd = {
             'type': 'item_delete',
