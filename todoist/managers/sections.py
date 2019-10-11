@@ -110,3 +110,18 @@ class SectionsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
             },
         }
         self.queue.append(cmd)
+
+    def get(self, section_id):
+        """
+        Gets an existing section.
+        """
+        params = {'token': self.token,
+                  'section_id': section_id}
+        obj = self.api._get('sections/get', params=params)
+        if obj and 'error' in obj:
+            return None
+        data = {'sections': []}
+        if obj.get('section'):
+            data['sections'].append(obj.get('section'))
+        self.api._update_state(data)
+        return obj
