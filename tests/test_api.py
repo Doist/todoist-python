@@ -50,6 +50,8 @@ def test_project_add(cleanup, api_endpoint, api_token):
     assert 'Project1' in [p['name'] for p in api.state['projects']]
     assert api.projects.get_by_id(project1['id']) == project1
 
+    assert api.projects.get(project1['id'])['project']['name'] == project1['name']
+
     project1.delete()
     api.commit()
 
@@ -198,6 +200,8 @@ def test_item_add(cleanup, api_endpoint, api_token):
     assert 'Item1' in [i['content'] for i in api.state['items']]
     item1 = [i for i in api.state['items'] if i['content'] == 'Item1'][0]
     assert api.items.get_by_id(item1['id']) == item1
+
+    assert api.items.get(item1['id'])['item']['content'] == item1['content']
 
     item1.delete()
     api.commit()
@@ -475,6 +479,8 @@ def test_label_add(cleanup, api_endpoint, api_token):
     assert 'Label1' in [l['name'] for l in api.state['labels']]
     assert api.labels.get_by_id(label1['id']) == label1
 
+    assert api.labels.get(label1['id'])['label']['name'] == label1['name']
+
     label1.delete()
     api.commit()
 
@@ -552,6 +558,8 @@ def test_note_add(cleanup, api_endpoint, api_token):
     assert 'Note1' in [n['content'] for n in api.state['notes']]
     assert api.notes.get_by_id(note1['id']) == note1
 
+    assert api.notes.get(note1['id'])['note']['content'] == note1['content']
+
     note1.delete()
     api.commit()
     item1.delete()
@@ -613,6 +621,9 @@ def test_projectnote_add(cleanup, api_endpoint, api_token):
     assert 'Note1' in [n['content'] for n in api.state['project_notes']]
     assert api.project_notes.get_by_id(note1['id']) == note1
 
+    assert api.project_notes.get(note1['id'])['note']['content'] == \
+        note1['content']
+
     note1.delete()
     api.commit()
     project1.delete()
@@ -667,10 +678,12 @@ def test_section_add(cleanup, api_endpoint, api_token):
 
     response = api.sections.add('Section1', api.state['user']['inbox_project'])
     assert response['name'] == 'Section1'
-    api.sync()
+    api.commit()
     assert 'Section1' in [i['name'] for i in api.state['sections']]
     section1 = [i for i in api.state['sections'] if i['name'] == 'Section1'][0]
     assert api.sections.get_by_id(section1['id']) == section1
+
+    assert api.sections.get(section1['id'])['section']['name'] == section1['name']
 
     section1.delete()
     api.commit()
@@ -681,7 +694,7 @@ def test_section_delete(cleanup, api_endpoint, api_token):
     api.sync()
 
     section1 = api.sections.add('Section1', api.state['user']['inbox_project'])
-    api.sync()
+    api.commit()
 
     section1.delete()
     response = api.commit()
@@ -805,6 +818,7 @@ def test_filter_add(cleanup, api_endpoint, api_token):
     assert response['filters'][0]['name'] == 'Filter1'
     assert 'Filter1' in [f['name'] for f in api.state['filters']]
     assert api.filters.get_by_id(filter1['id']) == filter1
+    assert api.filters.get(filter1['id'])['filter']['name'] == filter1['name']
 
     filter1.delete()
     api.commit()
@@ -885,6 +899,7 @@ def test_reminder_relative_add(cleanup, api_endpoint, api_token):
     assert response['reminders'][0]['minute_offset'] == 30
     assert reminder1['id'] in [p['id'] for p in api.state['reminders']]
     assert api.reminders.get_by_id(reminder1['id']) == reminder1
+    assert api.reminders.get(reminder1['id'])['reminder']['due'] == reminder1['due']
 
     reminder1.delete()
     api.commit()
@@ -947,6 +962,7 @@ def test_reminder_absolute_add(cleanup, api_endpoint, api_token):
     tomorrow = time.gmtime(time.time() + 24 * 3600)
     assert reminder1['id'] in [p['id'] for p in api.state['reminders']]
     assert api.reminders.get_by_id(reminder1['id']) == reminder1
+    assert api.reminders.get(reminder1['id'])['reminder']['due'] == reminder1['due']
 
     reminder1.delete()
     api.commit()
