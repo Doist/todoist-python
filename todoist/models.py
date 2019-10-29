@@ -21,6 +21,9 @@ class Model(object):
         classname = self.__class__.__name__
         return '%s(%s)' % (classname, formatted_dict)
 
+    def __contains__(self, value):
+        return value in self.data
+
 
 class Collaborator(Model):
     """
