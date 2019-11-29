@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .generic import Manager, AllMixin, SyncMixin
+from .generic import AllMixin, Manager, SyncMixin
 
 
 class LocationsManager(Manager, AllMixin, SyncMixin):

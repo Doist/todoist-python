@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .generic import Manager, GetByIdMixin, SyncMixin
+from .generic import GetByIdMixin, Manager, SyncMixin
 
 
 class CollaboratorsManager(Manager, GetByIdMixin, SyncMixin):

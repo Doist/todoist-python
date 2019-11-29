@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .generic import Manager, GetByIdMixin, AllMixin, SyncMixin
+from .generic import AllMixin, GetByIdMixin, Manager, SyncMixin
 
 
 class LiveNotificationsManager(Manager, GetByIdMixin, AllMixin, SyncMixin):

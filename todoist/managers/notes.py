@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .. import models
-from .generic import Manager, AllMixin, GetByIdMixin, SyncMixin
+from .generic import AllMixin, GetByIdMixin, Manager, SyncMixin
 
 
 class GenericNotesManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
