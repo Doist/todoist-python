@@ -4,7 +4,7 @@ from .generic import Manager, SyncMixin
 
 class CollaboratorStatesManager(Manager, SyncMixin):
 
-    state_name = 'collaborator_states'
+    state_name = "collaborator_states"
     object_type = None  # there is no object type associated
 
     def get_by_ids(self, project_id, user_id):
@@ -13,6 +13,6 @@ class CollaboratorStatesManager(Manager, SyncMixin):
         ids.
         """
         for obj in self.state[self.state_name]:
-            if obj['project_id'] == project_id and obj['user_id'] == user_id:
+            if obj["project_id"] == project_id and obj["user_id"] == user_id:
                 return obj
         return None

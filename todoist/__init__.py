@@ -1,1 +1,1 @@
-from .api import TodoistAPI
+from .api import TodoistAPI  # noqa: F401

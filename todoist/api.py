@@ -41,8 +41,8 @@ class TodoistAPI(object):
     Implements the API that makes it possible to interact with a Todoist user
     account and its data.
     """
-    _serialize_fields = ('token', 'api_endpoint', 'sync_token', 'state',
-                         'temp_ids')
+
+    _serialize_fields = ("token", "api_endpoint", "sync_token", "state", "temp_ids")
 
     @classmethod
     def deserialize(cls, data):
@@ -52,18 +52,19 @@ class TodoistAPI(object):
                 setattr(obj, key, data[key])
         return obj
 
-    def __init__(self,
-                 token='',
-                 api_endpoint='https://api.todoist.com',
-                 session=None,
-                 cache='~/.todoist-sync/'):
+    def __init__(
+        self,
+        token="",
+        api_endpoint="https://api.todoist.com",
+        session=None,
+        cache="~/.todoist-sync/",
+    ):
         self.api_endpoint = api_endpoint
         self.reset_state()
         self.token = token  # User's API token
         self.temp_ids = {}  # Mapping of temporary ids to real ids
         self.queue = []  # Requests to be sent are appended here
-        self.session = session or requests.Session(
-        )  # Session instance for requests
+        self.session = session or requests.Session()  # Session instance for requests
 
         # managers
         self.biz_invitations = BizInvitationsManager(self)
@@ -99,26 +100,26 @@ class TodoistAPI(object):
             self.cache = None
 
     def reset_state(self):
-        self.sync_token = '*'
+        self.sync_token = "*"
         self.state = {  # Local copy of all of the user's objects
-            'collaborator_states': [],
-            'collaborators': [],
-            'day_orders': {},
-            'day_orders_timestamp': '',
-            'filters': [],
-            'items': [],
-            'labels': [],
-            'live_notifications': [],
-            'live_notifications_last_read_id': -1,
-            'locations': [],
-            'notes': [],
-            'project_notes': [],
-            'projects': [],
-            'reminders': [],
-            'sections': [],
-            'settings_notifications': {},
-            'user': {},
-            'user_settings': {},
+            "collaborator_states": [],
+            "collaborators": [],
+            "day_orders": {},
+            "day_orders_timestamp": "",
+            "filters": [],
+            "items": [],
+            "labels": [],
+            "live_notifications": [],
+            "live_notifications_last_read_id": -1,
+            "locations": [],
+            "notes": [],
+            "project_notes": [],
+            "projects": [],
+            "reminders": [],
+            "sections": [],
+            "settings_notifications": {},
+            "user": {},
+            "user_settings": {},
         }
 
     def __getitem__(self, key):
@@ -128,7 +129,7 @@ class TodoistAPI(object):
         return {key: getattr(self, key) for key in self._serialize_fields}
 
     def get_api_url(self):
-        return '%s/sync/v8/' % self.api_endpoint
+        return "%s/sync/v8/" % self.api_endpoint
 
     def _update_state(self, syncdata):
         """
@@ -136,46 +137,47 @@ class TodoistAPI(object):
         sync.
         """
         # Check sync token first
-        if 'sync_token' in syncdata:
-            self.sync_token = syncdata['sync_token']
+        if "sync_token" in syncdata:
+            self.sync_token = syncdata["sync_token"]
 
         # It is straightforward to update these type of data, since it is
         # enough to just see if they are present in the sync data, and then
         # either replace the local values or update them.
-        if 'day_orders' in syncdata:
-            self.state['day_orders'].update(syncdata['day_orders'])
-        if 'day_orders_timestamp' in syncdata:
-            self.state['day_orders_timestamp'] = syncdata[
-                'day_orders_timestamp']
-        if 'live_notifications_last_read_id' in syncdata:
-            self.state['live_notifications_last_read_id'] = syncdata[
-                'live_notifications_last_read_id']
-        if 'locations' in syncdata:
-            self.state['locations'] = syncdata['locations']
-        if 'settings_notifications' in syncdata:
-            self.state['settings_notifications'].update(
-                syncdata['settings_notifications'])
-        if 'user' in syncdata:
-            self.state['user'].update(syncdata['user'])
-        if 'user_settings' in syncdata:
-            self.state['user_settings'].update(syncdata['user_settings'])
+        if "day_orders" in syncdata:
+            self.state["day_orders"].update(syncdata["day_orders"])
+        if "day_orders_timestamp" in syncdata:
+            self.state["day_orders_timestamp"] = syncdata["day_orders_timestamp"]
+        if "live_notifications_last_read_id" in syncdata:
+            self.state["live_notifications_last_read_id"] = syncdata[
+                "live_notifications_last_read_id"
+            ]
+        if "locations" in syncdata:
+            self.state["locations"] = syncdata["locations"]
+        if "settings_notifications" in syncdata:
+            self.state["settings_notifications"].update(
+                syncdata["settings_notifications"]
+            )
+        if "user" in syncdata:
+            self.state["user"].update(syncdata["user"])
+        if "user_settings" in syncdata:
+            self.state["user_settings"].update(syncdata["user_settings"])
 
         # Updating these type of data is a bit more complicated, since it is
         # necessary to find out whether an object in the sync data is new,
         # updates an existing object, or marks an object to be deleted.  But
         # the same procedure takes place for each of these types of data.
         resp_models_mapping = [
-            ('collaborators', models.Collaborator),
-            ('collaborator_states', models.CollaboratorState),
-            ('filters', models.Filter),
-            ('items', models.Item),
-            ('labels', models.Label),
-            ('live_notifications', models.LiveNotification),
-            ('notes', models.Note),
-            ('project_notes', models.ProjectNote),
-            ('projects', models.Project),
-            ('reminders', models.Reminder),
-            ('sections', models.Section),
+            ("collaborators", models.Collaborator),
+            ("collaborator_states", models.CollaboratorState),
+            ("filters", models.Filter),
+            ("items", models.Item),
+            ("labels", models.Label),
+            ("live_notifications", models.LiveNotification),
+            ("notes", models.Note),
+            ("project_notes", models.ProjectNote),
+            ("projects", models.Project),
+            ("reminders", models.Reminder),
+            ("sections", models.Section),
         ]
         for datatype, model in resp_models_mapping:
             if datatype not in syncdata:
@@ -190,7 +192,7 @@ class TodoistAPI(object):
                     # If the object is already present in the local state, then
                     # we either update it, or if marked as to be deleted, we
                     # remove it.
-                    is_deleted = remoteobj.get('is_deleted', 0)
+                    is_deleted = remoteobj.get("is_deleted", 0)
                     if is_deleted == 0 or is_deleted is False:
                         localobj.data.update(remoteobj)
                     else:
@@ -199,7 +201,7 @@ class TodoistAPI(object):
                     # If not, then the object is new and it should be added,
                     # unless it is marked as to be deleted (in which case it's
                     # ignored).
-                    is_deleted = remoteobj.get('is_deleted', 0)
+                    is_deleted = remoteobj.get("is_deleted", 0)
                     if is_deleted == 0 or is_deleted is False:
                         newobj = model(remoteobj, self)
                         self.state[datatype].append(newobj)
@@ -215,25 +217,24 @@ class TodoistAPI(object):
                 raise
 
         try:
-            with open(self.cache + self.token + '.json') as f:
+            with open(self.cache + self.token + ".json") as f:
                 state = f.read()
             state = json.loads(state)
             self._update_state(state)
 
-            with open(self.cache + self.token + '.sync') as f:
+            with open(self.cache + self.token + ".sync") as f:
                 sync_token = f.read()
             self.sync_token = sync_token
-        except:
+        except Exception:
             return
 
     def _write_cache(self):
         if not self.cache:
             return
-        result = json.dumps(
-            self.state, indent=2, sort_keys=True, default=state_default)
-        with open(self.cache + self.token + '.json', 'w') as f:
+        result = json.dumps(self.state, indent=2, sort_keys=True, default=state_default)
+        with open(self.cache + self.token + ".json", "w") as f:
             f.write(result)
-        with open(self.cache + self.token + '.sync', 'w') as f:
+        with open(self.cache + self.token + ".sync", "w") as f:
             f.write(self.sync_token)
 
     def _find_object(self, objtype, obj):
@@ -242,29 +243,30 @@ class TodoistAPI(object):
         object, and then on its primary key is.  If the object is found it is
         returned, and if not, then None is returned.
         """
-        if objtype == 'collaborators':
-            return self.collaborators.get_by_id(obj['id'])
-        elif objtype == 'collaborator_states':
-            return self.collaborator_states.get_by_ids(obj['project_id'],
-                                                       obj['user_id'])
-        elif objtype == 'filters':
-            return self.filters.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'items':
-            return self.items.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'labels':
-            return self.labels.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'live_notifications':
-            return self.live_notifications.get_by_id(obj['id'])
-        elif objtype == 'notes':
-            return self.notes.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'project_notes':
-            return self.project_notes.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'projects':
-            return self.projects.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'reminders':
-            return self.reminders.get_by_id(obj['id'], only_local=True)
-        elif objtype == 'sections':
-            return self.sections.get_by_id(obj['id'], only_local=True)
+        if objtype == "collaborators":
+            return self.collaborators.get_by_id(obj["id"])
+        elif objtype == "collaborator_states":
+            return self.collaborator_states.get_by_ids(
+                obj["project_id"], obj["user_id"]
+            )
+        elif objtype == "filters":
+            return self.filters.get_by_id(obj["id"], only_local=True)
+        elif objtype == "items":
+            return self.items.get_by_id(obj["id"], only_local=True)
+        elif objtype == "labels":
+            return self.labels.get_by_id(obj["id"], only_local=True)
+        elif objtype == "live_notifications":
+            return self.live_notifications.get_by_id(obj["id"])
+        elif objtype == "notes":
+            return self.notes.get_by_id(obj["id"], only_local=True)
+        elif objtype == "project_notes":
+            return self.project_notes.get_by_id(obj["id"], only_local=True)
+        elif objtype == "projects":
+            return self.projects.get_by_id(obj["id"], only_local=True)
+        elif objtype == "reminders":
+            return self.reminders.get_by_id(obj["id"], only_local=True)
+        elif objtype == "sections":
+            return self.sections.get_by_id(obj["id"], only_local=True)
         else:
             return None
 
@@ -277,12 +279,18 @@ class TodoistAPI(object):
         # Go through all the objects for which we expect the temporary id to be
         # replaced by a real one.
         for datatype in [
-                'filters', 'items', 'labels', 'notes', 'project_notes',
-                'projects', 'reminders', 'sections'
+            "filters",
+            "items",
+            "labels",
+            "notes",
+            "project_notes",
+            "projects",
+            "reminders",
+            "sections",
         ]:
             for obj in self.state[datatype]:
                 if obj.temp_id == temp_id:
-                    obj['id'] = new_id
+                    obj["id"] = new_id
                     return True
         return False
 
@@ -329,16 +337,16 @@ class TodoistAPI(object):
         fetches the latest updated data from the server.
         """
         post_data = {
-            'token': self.token,
-            'sync_token': self.sync_token,
-            'day_orders_timestamp': self.state['day_orders_timestamp'],
-            'include_notification_settings': 1,
-            'resource_types': json_dumps(['all']),
-            'commands': json_dumps(commands or []),
+            "token": self.token,
+            "sync_token": self.sync_token,
+            "day_orders_timestamp": self.state["day_orders_timestamp"],
+            "include_notification_settings": 1,
+            "resource_types": json_dumps(["all"]),
+            "commands": json_dumps(commands or []),
         }
-        response = self._post('sync', data=post_data)
-        if 'temp_id_mapping' in response:
-            for temp_id, new_id in response['temp_id_mapping'].items():
+        response = self._post("sync", data=post_data)
+        if "temp_id_mapping" in response:
+            for temp_id, new_id in response["temp_id_mapping"].items():
                 self.temp_ids[temp_id] = new_id
                 self._replace_temp_id(temp_id, new_id)
         self._update_state(response)
@@ -356,10 +364,10 @@ class TodoistAPI(object):
             return
         ret = self.sync(commands=self.queue)
         del self.queue[:]
-        if 'sync_status' in ret:
+        if "sync_status" in ret:
             if raise_on_error:
-                for k, v in ret['sync_status'].items():
-                    if v != 'ok':
+                for k, v in ret["sync_status"].items():
+                    if v != "ok":
                         raise SyncError(k, v)
         return ret
 
@@ -370,27 +378,27 @@ class TodoistAPI(object):
         DEPRECATED: query endpoint is deprecated for a long time and this
         method will be removed in the next major version of todoist-python
         """
-        params = {'queries': json_dumps(queries), 'token': self.token}
+        params = {"queries": json_dumps(queries), "token": self.token}
         params.update(kwargs)
-        return self._get('query', params=params)
+        return self._get("query", params=params)
 
     def add_item(self, content, **kwargs):
         """
         Adds a new task.
         """
-        params = {'token': self.token, 'content': content}
+        params = {"token": self.token, "content": content}
         params.update(kwargs)
-        if 'labels' in params:
-            params['labels'] = str(params['labels'])
-        return self._get('add_item', params=params)
+        if "labels" in params:
+            params["labels"] = str(params["labels"])
+        return self._get("add_item", params=params)
 
     # Class
     def __repr__(self):
         name = self.__class__.__name__
-        unsaved = '*' if len(self.queue) > 0 else ''
-        email = self.user.get('email')
-        email_repr = repr(email) if email else '<not synchronized>'
-        return '%s%s(%s)' % (name, unsaved, email_repr)
+        unsaved = "*" if len(self.queue) > 0 else ""
+        email = self.user.get("email")
+        email_repr = repr(email) if email else "<not synchronized>"
+        return "%s%s(%s)" % (name, unsaved, email_repr)
 
 
 def state_default(obj):
@@ -399,12 +407,11 @@ def state_default(obj):
 
 def json_default(obj):
     if isinstance(obj, datetime.datetime):
-        return obj.strftime('%Y-%m-%dT%H:%M:%S')
+        return obj.strftime("%Y-%m-%dT%H:%M:%S")
     elif isinstance(obj, datetime.date):
-        return obj.strftime('%Y-%m-%d')
+        return obj.strftime("%Y-%m-%d")
     elif isinstance(obj, datetime.time):
-        return obj.strftime('%H:%M:%S')
+        return obj.strftime("%H:%M:%S")
 
 
-json_dumps = functools.partial(
-    json.dumps, separators=',:', default=json_default)
+json_dumps = functools.partial(json.dumps, separators=",:", default=json_default)
