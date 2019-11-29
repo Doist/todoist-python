@@ -4,7 +4,7 @@ from .generic import Manager, AllMixin, SyncMixin
 
 class LocationsManager(Manager, AllMixin, SyncMixin):
 
-    state_name = 'locations'
+    state_name = "locations"
     object_type = None  # there is no local state associated
 
     def clear(self):
@@ -12,8 +12,8 @@ class LocationsManager(Manager, AllMixin, SyncMixin):
         Clears the locations.
         """
         cmd = {
-            'type': 'clear_locations',
-            'uuid': self.api.generate_uuid(),
-            'args': {},
+            "type": "clear_locations",
+            "uuid": self.api.generate_uuid(),
+            "args": {},
         }
         self.queue.append(cmd)

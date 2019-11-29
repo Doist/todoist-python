@@ -7,13 +7,12 @@ class CompletedManager(Manager):
         """
         Returns the user's recent productivity stats.
         """
-        return self.api._get('completed/get_stats',
-                             params={'token': self.token})
+        return self.api._get("completed/get_stats", params={"token": self.token})
 
     def get_all(self, **kwargs):
         """
         Returns all user's completed items.
         """
-        params = {'token': self.token}
+        params = {"token": self.token}
         params.update(kwargs)
-        return self.api._get('completed/get_all', params=params)
+        return self.api._get("completed/get_all", params=params)

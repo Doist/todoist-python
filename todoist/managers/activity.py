@@ -7,6 +7,6 @@ class ActivityManager(Manager):
         """
         Get events from the activity log.
         """
-        params = {'token': self.token}
+        params = {"token": self.token}
         params.update(kwargs)
-        return self.api._get('activity/get', params=params)
+        return self.api._get("activity/get", params=params)

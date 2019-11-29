@@ -7,5 +7,5 @@ class BackupsManager(Manager):
         """
         Get backups.
         """
-        params = {'token': self.token}
-        return self.api._get('backups/get', params=params)
+        params = {"token": self.token}
+        return self.api._get("backups/get", params=params)
