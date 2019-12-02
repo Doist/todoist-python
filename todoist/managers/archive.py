@@ -24,29 +24,27 @@ for item in archive.items():
     print(item["date_completed"], item["content"])
 ```
 """
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator, List
 
 from ..models import Item, Model, Section
-from .generic import Manager
 
 if TYPE_CHECKING:
     from ..api import TodoistAPI
 
 
-class ArchiveManager(Manager):
+class ArchiveManager(object):
 
     object_model = Model
 
-    def __init__(self, api, object_type):
+    def __init__(self, api, element_type):
         # type: (TodoistAPI, str) -> None
-        super(ArchiveManager, self).__init__(api=api)
-        assert object_type in {"sections", "items"}
+        assert element_type in {"sections", "items"}
+        self.api = api
         self.api = api
         self.cursor = None
         self.has_more = True
-        self.elements = []
-        self.object_type = object_type
+        self.elements = []  # type: List[Model]
+        self.element_type = element_type
 
     def reset(self):
         """Reset internal cache of manager and start iteration from scratch."""
@@ -66,7 +64,7 @@ class ArchiveManager(Manager):
 
     def _next_url(self):
         return "{0}/sync/{1}/archive/{2}".format(
-            self.api.api_endpoint, self.api.api_version, self.object_type
+            self.api.api_endpoint, self.api.api_version, self.element_type
         )
 
     def _next_query_params(self):
@@ -87,7 +85,7 @@ class ArchiveManager(Manager):
                 break
 
             resp = self.next_page()
-            objects = resp[self.object_type]
+            objects = resp[self.element_type]
 
             self.elements += [self._make_object(data) for data in objects]
             self.has_more = resp["has_more"]
@@ -124,6 +122,7 @@ class SectionsArchiveManager(ArchiveManager):
         return "SectionsArchiveManager(project_id={})".format(self.project_id)
 
     def sections(self):
+        # type: () -> Iterator[Section]
         """Iterate over all archived sections."""
         for obj in self._iterate():
             yield obj
@@ -170,6 +169,7 @@ class ItemsArchiveManager(ArchiveManager):
         return "ItemsArchiveManager({}={})".format(k, v)
 
     def items(self):
+        # type: () -> Iterator[Item]
         """Iterate over all archived items."""
         for obj in self._iterate():
             yield obj
