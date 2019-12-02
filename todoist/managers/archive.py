@@ -40,6 +40,7 @@ class ArchiveManager(Manager):
 
     def __init__(self, api, object_type):
         # type: (TodoistAPI, str) -> None
+        super(ArchiveManager, self).__init__(api=api)
         assert object_type in {"sections", "items"}
         self.api = api
         self.cursor = None
