@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+* Add support for items and sections archive manager.
+
 ## [8.0] - 2019-04-18
 
 * All arguments expecting a date/time must be formatted according to [RFC
