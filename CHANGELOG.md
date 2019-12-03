@@ -4,6 +4,18 @@
 
 * Add support for items and sections archive manager.
 
+## [8.1.1] - 2019-10-29
+- Add `__contains__()` to `Model`.
+
+## [8.1.0] - 2019-10-11
+- Add support for sections.
+
+## [8.0.2] - 2019-10-07
+- Fix the parameters of `update_date_complete()`.
+
+## [8.0.1] - 2019-10-07
+- Fix the default API endpoint.
+
 ## [8.0] - 2019-04-18
 
 * All arguments expecting a date/time must be formatted according to [RFC
