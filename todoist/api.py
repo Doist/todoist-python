@@ -8,6 +8,10 @@ import requests
 
 from todoist import models
 from todoist.managers.activity import ActivityManager
+from todoist.managers.archive import (
+    ItemsArchiveManagerMaker,
+    SectionsArchiveManagerMaker,
+)
 from todoist.managers.backups import BackupsManager
 from todoist.managers.biz_invitations import BizInvitationsManager
 from todoist.managers.business_users import BusinessUsersManager
@@ -30,6 +34,8 @@ from todoist.managers.templates import TemplatesManager
 from todoist.managers.uploads import UploadsManager
 from todoist.managers.user import UserManager
 from todoist.managers.user_settings import UserSettingsManager
+
+DEFAULT_API_VERSION = "v8"
 
 
 class SyncError(Exception):
@@ -56,10 +62,12 @@ class TodoistAPI(object):
         self,
         token="",
         api_endpoint="https://api.todoist.com",
+        api_version=DEFAULT_API_VERSION,
         session=None,
         cache="~/.todoist-sync/",
     ):
         self.api_endpoint = api_endpoint
+        self.api_version = api_version
         self.reset_state()
         self.token = token  # User's API token
         self.temp_ids = {}  # Mapping of temporary ids to real ids
@@ -92,6 +100,9 @@ class TodoistAPI(object):
         self.quick = QuickManager(self)
         self.templates = TemplatesManager(self)
         self.uploads = UploadsManager(self)
+
+        self.items_archive = ItemsArchiveManagerMaker(self)
+        self.sections_archive = SectionsArchiveManagerMaker(self)
 
         if cache:  # Read and write user state on local disk cache
             self.cache = os.path.expanduser(cache)
@@ -129,7 +140,7 @@ class TodoistAPI(object):
         return {key: getattr(self, key) for key in self._serialize_fields}
 
     def get_api_url(self):
-        return "%s/sync/v8/" % self.api_endpoint
+        return "{0}/sync/{1}/".format(self.api_endpoint, self.api_version)
 
     def _update_state(self, syncdata):
         """

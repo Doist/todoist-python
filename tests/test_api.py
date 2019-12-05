@@ -1153,6 +1153,52 @@ def test_share_delete(cleanup, cleanup2, api_endpoint, api_token, api_token2):
     api.commit()
 
 
+def test_items_archive(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+
+    # Create and complete five tasks
+    project = api.projects.add("Project")
+    items = [
+        api.items.add("task{}".format(i), project_id=project["id"]) for i in range(5)
+    ]
+    for i, item in enumerate(items):
+        date_completed = "2019-01-01T00:00:0{}Z".format(i)
+        api.items.complete(item_id=item["id"], date_completed=date_completed)
+    api.commit()
+
+    # Create an archive manager to iterate over them
+    manager = api.items_archive.for_project(project["id"])
+    item_ids = [item["id"] for item in manager.items()]
+    assert item_ids == [item["id"] for item in items[::-1]]
+
+    # tear down
+    project.delete()
+    api.commit()
+
+
+def test_sections_archive(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+
+    # Create and complete five sections
+    project = api.projects.add("Project")
+    sections = [
+        api.sections.add("s{}".format(i), project_id=project["id"]) for i in range(5)
+    ]
+    for i, section in enumerate(sections):
+        date_archived = "2019-01-01T00:00:0{}Z".format(i)
+        api.sections.archive(section_id=section["id"], date_archived=date_archived)
+    api.commit()
+
+    # Create an archive manager to iterate over them
+    manager = api.sections_archive.for_project(project["id"])
+    section_ids = [section["id"] for section in manager.sections()]
+    assert section_ids == [section["id"] for section in sections[::-1]]
+
+    # tear down
+    project.delete()
+    api.commit()
+
+
 def test_templates(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
 
