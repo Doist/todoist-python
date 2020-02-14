@@ -4,6 +4,7 @@
 /pytest.ini
 /build
 /dist
+env
 
 .*.swp
 *.pyc
