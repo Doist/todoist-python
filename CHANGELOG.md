@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 * Add support for items and sections archive manager.
+* The `items.move()` method now supports `section_id` to move an item to a
+  different section
 
 ## [8.1.1] - 2019-10-29
 - Add `__contains__()` to `Model`.
