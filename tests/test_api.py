@@ -351,6 +351,29 @@ def test_item_move_to_project(cleanup, api_endpoint, api_token):
     api.commit()
 
 
+def test_item_move_to_section(cleanup, api_endpoint, api_token):
+    api = todoist.api.TodoistAPI(api_token, api_endpoint)
+    api.sync()
+
+    item1 = api.items.add("Item1")
+    api.commit()
+    section1 = api.sections.add("Section1", api.state["user"]["inbox_project"])
+    api.commit()
+
+    item1.move(section_id=section1["id"])
+    response = api.commit()
+    assert response["items"][0]["content"] == "Item1"
+    assert response["items"][0]["section_id"] == section1["id"]
+    assert section1["id"] in [
+        i["section_id"] for i in api.state["items"] if i["id"] == item1["id"]
+    ]
+
+    item1.delete()
+    api.commit()
+    section1.delete()
+    api.commit()
+
+
 def test_item_move_to_parent(cleanup, api_endpoint, api_token):
     api = todoist.api.TodoistAPI(api_token, api_endpoint)
     api.sync()
