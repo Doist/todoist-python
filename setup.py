@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+#The OS module in python provides functions for interacting with the operating system. OS, comes under Python's standard utility modules.
 import os
 
+#Setuptools is a package development process library designed to facilitate packaging Python projects by enhancing the Python standard library distutils.
 from setuptools import setup
 
 
@@ -10,7 +12,7 @@ def read(fname):
     except Exception:
         return ""
 
-
+#Internal Process
 setup(
     name="todoist-python",
     version="8.1.2",
