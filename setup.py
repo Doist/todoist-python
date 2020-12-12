@@ -20,10 +20,6 @@ setup(
     license="BSD",
     description="todoist-python - The official Todoist Python API library",
     long_description=read("README.md"),
-    install_requires=[
-        "requests", 
-        "typing;python_version<'3.5'",
-    ],
     # see here for complete list of classifiers
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=(
