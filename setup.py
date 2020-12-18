@@ -13,13 +13,17 @@ def read(fname):
 
 setup(
     name="todoist-python",
-    version="8.1.2",
+    version="8.1.3",
     packages=["todoist", "todoist.managers"],
     author="Doist Team",
-    author_email="info@todoist.com",
+    author_email="integrations@todoist.com",
     license="BSD",
     description="todoist-python - The official Todoist Python API library",
     long_description=read("README.md"),
+    install_requires=[
+        "requests",
+        "typing;python_version<'3.5'",
+    ],
     # see here for complete list of classifiers
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=(
