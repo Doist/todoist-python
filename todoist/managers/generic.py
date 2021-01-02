@@ -24,7 +24,7 @@ class Manager(object):
 
 class AllMixin(object):
     def all(self, filt=None):
-        return list(filter(filt, self.state[self.state_name]))
+        return list(filter(filt, self.state[self.state_name].values()))
 
 
 class GetByIdMixin(object):
@@ -32,17 +32,23 @@ class GetByIdMixin(object):
         """
         Finds and returns the object based on its id.
         """
-        for obj in self.state[self.state_name]:
-            if obj["id"] == obj_id or obj.temp_id == str(obj_id):
+        if str(obj_id) in self.state[self.state_name]:
+            return self.state[self.state_name][str(obj_id)]
+
+        for _, obj in self.state[self.state_name].items():
+            if obj.temp_id == str(obj_id):
                 return obj
 
         if not only_local and self.object_type is not None:
             getter = getattr(eval("self.api.%ss" % self.object_type), "get")
             data = getter(obj_id)
 
+            if str(obj_id) in self.state[self.state_name]:
+                return self.state[self.state_name]
+
             # retrieves from state, otherwise we return the raw data
-            for obj in self.state[self.state_name]:
-                if obj["id"] == obj_id or obj.temp_id == str(obj_id):
+            for _, obj in self.state[self.state_name].items():
+                if obj.temp_id == str(obj_id):
                     return obj
 
             return data

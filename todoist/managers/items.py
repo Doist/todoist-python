@@ -182,6 +182,9 @@ class ItemsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         """
         Gets an existing item.
         """
+        if str(item_id) in self.api.state['items']:
+            return {"item": self.api.state['items'][str(item_id)].data}
+
         params = {"token": self.token, "item_id": item_id}
         obj = self.api._get("items/get", params=params)
         if obj and "error" in obj:

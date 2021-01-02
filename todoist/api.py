@@ -113,21 +113,21 @@ class TodoistAPI(object):
     def reset_state(self):
         self.sync_token = "*"
         self.state = {  # Local copy of all of the user's objects
-            "collaborator_states": [],
-            "collaborators": [],
+            "collaborator_states": {},
+            "collaborators": {},
             "day_orders": {},
             "day_orders_timestamp": "",
-            "filters": [],
-            "items": [],
-            "labels": [],
-            "live_notifications": [],
+            "filters": {},
+            "items": {},
+            "labels": {},
+            "live_notifications": {},
             "live_notifications_last_read_id": -1,
-            "locations": [],
-            "notes": [],
-            "project_notes": [],
-            "projects": [],
-            "reminders": [],
-            "sections": [],
+            "locations": {},
+            "notes": {},
+            "project_notes": {},
+            "projects": {},
+            "reminders": {},
+            "sections": {},
             "settings_notifications": {},
             "user": {},
             "user_settings": {},
@@ -194,8 +194,11 @@ class TodoistAPI(object):
             if datatype not in syncdata:
                 continue
 
+            raw = syncdata[datatype]
+            it = raw if type(raw) is list else raw.values()
+
             # Process each object of this specific type in the sync data.
-            for remoteobj in syncdata[datatype]:
+            for remoteobj in it:
                 # Find out whether the object already exists in the local
                 # state.
                 localobj = self._find_object(datatype, remoteobj)
@@ -207,7 +210,7 @@ class TodoistAPI(object):
                     if is_deleted == 0 or is_deleted is False:
                         localobj.data.update(remoteobj)
                     else:
-                        self.state[datatype].remove(localobj)
+                        del self.state[datatype][str(localobj['id'])]
                 else:
                     # If not, then the object is new and it should be added,
                     # unless it is marked as to be deleted (in which case it's
@@ -215,7 +218,7 @@ class TodoistAPI(object):
                     is_deleted = remoteobj.get("is_deleted", 0)
                     if is_deleted == 0 or is_deleted is False:
                         newobj = model(remoteobj, self)
-                        self.state[datatype].append(newobj)
+                        self.state[datatype][str(newobj['id'])] = newobj
 
     def _read_cache(self):
         if not self.cache:
@@ -299,7 +302,7 @@ class TodoistAPI(object):
             "reminders",
             "sections",
         ]:
-            for obj in self.state[datatype]:
+            for _, obj in self.state[datatype].items():
                 if obj.temp_id == temp_id:
                     obj["id"] = new_id
                     return True

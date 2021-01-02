@@ -64,6 +64,9 @@ class LabelsManager(Manager, AllMixin, GetByIdMixin, SyncMixin):
         """
         Gets an existing label.
         """
+        if str(label_id) in self.api.state['labels']:
+            return {"label": self.api.state['labels'][str(label_id)].data}
+
         params = {"token": self.token, "label_id": label_id}
         obj = self.api._get("labels/get", params=params)
         if obj and "error" in obj:
