@@ -17,7 +17,7 @@ setup(
     packages=["todoist", "todoist.managers"],
     author="Doist Team",
     author_email="integrations@todoist.com",
-    license="BSD",
+    license="MIT",
     description="todoist-python - The official Todoist Python API library",
     long_description=read("README.md"),
     install_requires=[
@@ -28,7 +28,7 @@ setup(
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=(
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: MIT License"
         "Programming Language :: Python",
     ),
 )
