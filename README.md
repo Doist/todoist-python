@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This is no longer supported, please consider using [Doist/todoist-api-python](https://github.com/Doist/todoist-api-python) instead.
+
 # The official Todoist Python API library
 
 Welcome to the official client to the [Todoist Sync API](https://developer.todoist.com/sync/).
