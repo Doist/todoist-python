@@ -1,6 +1,10 @@
 # DEPRECATED
 
-This is no longer supported, please consider using [Doist/todoist-api-python](https://github.com/Doist/todoist-api-python) instead.
+This is no longer supported, as we're investing in SDKs using our [REST API](https://developer.todoist.com/rest/).
+
+Please consider using [Doist/todoist-api-python](https://github.com/Doist/todoist-api-python) instead, which should cover most use-cases.
+
+***
 
 # The official Todoist Python API library
 
